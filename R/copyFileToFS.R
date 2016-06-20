@@ -19,15 +19,15 @@ copyFileToFS_PSCP.Windows <- function(fileSource,target,username,password,host="
   cmd.target <- target
   cmd.host.target <- paste(cmd.host, cmd.target, sep=":")
   cmd.cd <- ""
-  
+
   # If PSCP link is not in current directory, add the cd command to shell script
   if (pathToPSCP != ".") {
     cmd.cd <- paste("cd", pathToPSCP,'&')
   }
-  
+
   # Concatenate commands for shell
   cmd <- paste(cmd.cd, cmd.plinkCmd, cmd.username, cmd.password, cmd.port, cmd.source, cmd.host.target)
-  
+
   # Send command to shell
   shell(cmd)
 }
@@ -37,6 +37,6 @@ copyFileToFS_PSCP.unix <- function(fileSource,target,username,password,host="lyr
 }
 
 
-copyFileToFS_PSCP.Unix <- function(fileSource,target,username,password,host="lyra.qut.edu.au",port=22,) {
+copyFileToFS_PSCP.Unix <- function(fileSource,target,username,password,host="lyra.qut.edu.au",port=22) {
 
 }

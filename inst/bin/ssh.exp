@@ -1,0 +1,30 @@
+#!/usr/bin/expect
+
+set timeout 20
+
+set ip [lindex $argv 0]
+
+set user [lindex $argv 1]
+
+set password [lindex $argv 2]
+
+set port [lindex $argv 3]
+
+set command [lindex $argv 4]
+
+spawn ssh -q -v "$user\@$ip" -p $port
+
+expect {
+  "password:" {
+    send "$password\r";
+    expect {
+      "Permission denied, please try again." {
+        exit;
+      } ">" {
+        send "$command\rexit\r";
+      }
+    }
+  }
+}
+
+interact
