@@ -1,2 +1,4 @@
-declare(inst\executables\win32\plink.exe)
-declare(inst\executables\win32\pscp.exe)
+RemoteLyraR/inst/executables/win32/plink.exe
+RemoteLyraR/inst/executables/win32/pscp.exe
+inst/executables/win32/plink.exe
+inst/executables/win32/pscp.exe
