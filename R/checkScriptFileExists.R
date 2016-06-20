@@ -9,7 +9,7 @@ checkScriptFileExists <- function(directory,file,username,password,host="lyra.qu
     parsed_String <- submitCommandToLyra.Unix(command,username,password,host,port)
     count <- 1
   } else {
-    error("Your platform is not supported")
+    stop("Your platform is not supported")
   }
 
 

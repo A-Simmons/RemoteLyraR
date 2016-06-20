@@ -10,7 +10,7 @@ checkFolderExists <- function(directory,username,password,host="lyra.qut.edu.au"
     parsed_String <- submitCommandToLyra.Unix(command,username,password,host,port)
     count <- 1
   } else {
-    error("Your platform is not supported")
+    stop("Your platform is not supported")
   }
   if (length(grep('FOLDER_NOT_FOUND',parsed_String,value=TRUE)) > count ) {
     stop(paste("The directory: /",directory," could not be found.",sep=""))

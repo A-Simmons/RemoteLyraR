@@ -5,7 +5,7 @@ checkConnection <- function(username,password,host="lyra.qut.edu.au",port=22) {
   } else if (.Platform$OS.type == "unix") {
     parsed_String <- submitCommandToLyra.Unix("exit",username,password,host,port)
   } else {
-    error("Your platform is not supported")
+    stop("Your platform is not supported")
   }
 
   if (length(grep('debug1: Authentication succeeded',parsed_String,value=TRUE)) == 0 ) {
