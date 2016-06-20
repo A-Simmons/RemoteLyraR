@@ -4,7 +4,7 @@ copyFileToFS_PSCP <- function(fileSource,target,username,password,host="lyra.qut
   } else if (.Platform$OS.type == "unix") {
     copyFileToFS_PSCP.unix(fileSource,target,username,password,host="lyra.qut.edu.au",port=22,pathToPSCP='.')
   } else {
-    error("Your platform is not supported")
+    stop("Your platform is not supported")
   }
 }
 
