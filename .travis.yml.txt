@@ -1,2 +1,3 @@
-language: r
-cache: packages
+language: c
+sudo: required
+dist: trusty
