@@ -9,4 +9,5 @@ submitCommandFileToLyra.Windows(command,username,password,host,port)
 credentials <- c("n8352747", "7467136573dD4")
 remote_folder <- "bin"
 script_file <- "scp.exp"
+
 submitRemote(credentials,remote_folder,script_file)
