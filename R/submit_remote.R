@@ -52,7 +52,7 @@
 submitRemote <- function(credentials, remote.folder, script.file, data, quiet=FALSE, host="lyra.qut.edu.au", port=22, submission.file) {
 
   username = credentials[1]; password = credentials[2];
-
+  ### ARUGMENT CHECK ###
   # Check that server can be accessed
   checkConnection(username,password)
 
@@ -62,9 +62,81 @@ submitRemote <- function(credentials, remote.folder, script.file, data, quiet=FA
   # Check that script file exists in remote folder
   checkScriptFileExists(remote.folder,script.file,username,password,host=host,port=port)
 
+  # Check that submission.file is in local directory
+  ## ACTUALLY WRITE THIS
+
+  # Check DATA structure
+
+
+  ### Transform data structure ###
+
+
+
 }
 
+### Check data structure
+checkData <- function(data) {
+  colnames <- colnames(data)
+  jobnameColExists <- any(colnames %in% "JOBNAME")
+  memoryColExists <- any(colnames %in% "MEMORY")
+  walltimeColExists <- any(colnames %in% "WALLTIME")
+  #ncpusColExists <- any(colnames %in% "NCPUS")
+  #dnrColExists <- any(colnames %in% "DONOTRUNJOB")
+  #repeatColExists <- any(colnames %in% "REPEAT")
 
+  # Determine structure type
+  if (is.data.frame(data)) structure<-"data.frame"
+  if (is.data.table(data)) structure<-"data.table"
+
+  # Check that JOBNAME, MEMORY and WALLTIME exist as columns in the data structure
+  if (!((jobnameColExists) && (memoryColExists) && (walltimeColExists))) {
+    # Determine which columns are missing
+    if (sum(c(!jobnameColExists,!memoryColExists,!walltimeColExists))>1) plural<-"s " else plural<-" "
+    if (!jobnameColExists) jobnameError<-"JOBNAME, " else jobnameError<-""
+    if (!memoryColExists) memoryError<-"MEMORY, " else memoryError<-""
+    if (!walltimeColExists) walltimeError<-"WALLTIME " else walltimeError<-""
+    # Send error
+    errorMsg <- paste("\nColumn",plural,jobnameError,memoryError,walltimeError,"not found in ",structure,sep="")
+    stop(errorMsg)
+  }
+
+
+  ### Check formatting of memory is correct
+  invalidRowsMemory<-grep("^[0-9]+[m_g]b$",tolower(data$MEMORY),invert=TRUE)
+  # Commit problematic fields to error message
+  memoryError<-character(0)
+  for (row in invalidRowsMemory) {
+    memoryError<-paste(memoryError,"\nRow ",row,": ",data$MEMORY[row],sep="")
+  }
+  if (length(memoryError)!=0) memoryError<-paste("Invalid MEMORY fields found",memoryError)
+
+
+
+  ### Check formatting of walltime is correct
+  invalidRowsWalltime_Num<-grep("^[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}$",tolower(data$WALLTIME),invert=TRUE) # Invalid due to <hours>:<minutes>:<seconds>
+  invalidRowsWalltime_HMS<-grep("^([0-9]*\\.[0-9]+|[0-9]+)$",tolower(data$WALLTIME),invert=TRUE) # Invalid in floating point form
+  invalidRowsWalltime = intersect(invalidRowsWalltime_Num,invalidRowsWalltime_HMS)
+  # Commit problematic fields to error message
+  walltimeError<-character(0)
+  for (row in invalidRowsWalltime) {
+    walltimeError<-paste(walltimeError,"\nRow ",row,": ",data$WALLTIME[row],sep="")
+  }
+  if (length(walltimeError)!=0) walltimeError<-paste("Invalid WALLTIME fields found",walltimeError)
+
+
+
+  ### Check that each jobname is unique
+  dupJobNameWarning<-character(0)
+  dupJobnames <- as.vector(data$JOBNAME[duplicated(data$JOBNAME)])
+  print(dupJobnames)
+  for (name in dupJobnames) {
+    dupJobNameWarning<-paste(dupJobNameWarning,"\n Jobname ",name," found in rows ",paste(which(data$JOBNAME %in% name),collapse=" "),sep="")
+  }
+  if (length(dupJobNameWarning)!=0) dupJobNameWarning<-paste("Duplicated JOBNAMEs found",dupJobNameWarning)
+
+
+
+}
 
 ### Check that server can be accessed
 checkConnection <- function(username,password,host="lyra.qut.edu.au",port=22) {
