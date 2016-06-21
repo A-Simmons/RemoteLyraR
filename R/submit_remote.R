@@ -51,7 +51,7 @@
 #' to the \code{remote.folder}.
 
 submitRemote <- function(credentials, remote.folder, script.file, data, submission.file, quiet=FALSE, host="lyra.qut.edu.au", port=22, ignore.warning=FALSE) {
-
+  require(stats)
   username = credentials[1]; password = credentials[2];
   ### ARUGMENT CHECK ###
   # Check that server can be accessed
@@ -188,7 +188,6 @@ checkData<-function(data) {
 
   ### Check formatting of walltime is correct
   invalidRowsWalltime<-grep("^[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}$|^([0-9]*\\.[0-9]+|[0-9]+)$",tolower(data$WALLTIME),invert=TRUE)
-  invalidRowsWalltime = intersect(invalidRowsWalltime_Num,invalidRowsWalltime_HMS)
   walltimeError<-createErrorString(invalidRowsWalltime,data$WALLTIME,"WALLTIME")
   if (length(walltimeError) != 0) err_str<-paste(err_str,walltimeError,sep="\n\n")
 
