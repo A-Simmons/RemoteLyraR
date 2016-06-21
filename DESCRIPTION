@@ -13,3 +13,4 @@ Imports:
       data.table,
       stats
 Exports: CODECOV_TOKEN="6b443d0b-0526-4977-9bd5-7f74ecc60304"
+Suggests: installr
