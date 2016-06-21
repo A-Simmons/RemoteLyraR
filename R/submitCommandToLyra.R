@@ -7,5 +7,4 @@ submitCommandToLyra <- function(command,username,password,host="lyra.qut.edu.au"
     stop("Your platform is not supported")
   }
 
-
 }
