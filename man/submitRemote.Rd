@@ -24,6 +24,8 @@ submitRemote(credentials, remote.folder, script.file, data, submission.file,
 \item{host}{Host name for the remote server (default: lyra.qut.edu.au)}
 
 \item{port}{Port number to be used for SSH and SCP to the host (defualt: 22)}
+
+\item{ignore.warning}{Suppress warning messages (default: FALSE)}
 }
 \value{
 A structure (dataframe or datatable, matches the structure of \code{data}) which contains the details of every
