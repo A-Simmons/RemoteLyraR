@@ -9,3 +9,4 @@ Description: More about what it does (maybe more than one line)
 License: MIT + file LICENSE
 LazyData: TRUE
 RoxygenNote: 5.0.1
+Imports: stats, data.table
