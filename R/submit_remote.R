@@ -9,7 +9,7 @@
 #' @param quiet Turns on quiet mode, disabling all messages except warnings and errors (default: FALSE)
 #' @param host Host name for the remote server (default: lyra.qut.edu.au)
 #' @param port Port number to be used for SSH and SCP to the host (defualt: 22)
-#' @ignore.warning Suppress warning messages (default: FALSE)
+#' @param ignore.warning Suppress warning messages (default: FALSE)
 #'
 #' @description
 #' Submit Job to HPC where project files are already stored on the file server.
