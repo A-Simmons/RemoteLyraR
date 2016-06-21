@@ -95,7 +95,7 @@ checkFolderExists <- function(directory,username,password,host="lyra.qut.edu.au"
   } else if (.Platform$OS.type == "unix") {
     parsed_String <- submitCommandToLyra.Unix(command,username,password,host,port)
   } else {
-    error("Your platform is not supported")
+    stop("Your platform is not supported")
   }
   if (length(grep('FOLDER_NOT_FOUND',parsed_String,value=TRUE)) > 1 ) {
     stop(paste("The directory: /",directory," could not be found.",sep=""))
@@ -114,7 +114,7 @@ checkScriptFileExists <- function(directory,file,username,password,host="lyra.qu
   } else if (.Platform$OS.type == "unix") {
     parsed_String <- submitCommandToLyra.Unix(command,username,password,host,port)
   } else {
-    error("Your platform is not supported")
+    stop("Your platform is not supported")
   }
 
   if (length(grep('FILE_NOT_FOUND',parsed_String,value=TRUE)) > 1 ) {
