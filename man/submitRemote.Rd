@@ -4,8 +4,9 @@
 \alias{submitRemote}
 \title{Submit Job to HPC (Remotely Stored Project)}
 \usage{
-submitRemote(credentials, remote.folder, script.file, data, quiet = FALSE,
-  host = "lyra.qut.edu.au", port = 22, submission.file)
+submitRemote(credentials, remote.folder, script.file, data, submission.file,
+  quiet = FALSE, host = "lyra.qut.edu.au", port = 22,
+  ignore.warning = FALSE)
 }
 \arguments{
 \item{credentials}{Vector of username and password (<Username>, <Password>). REQUIRED}
@@ -16,13 +17,13 @@ submitRemote(credentials, remote.folder, script.file, data, quiet = FALSE,
 
 \item{data}{ADD SOON. REQUIRED}
 
+\item{submission.file}{ADD SOON}
+
 \item{quiet}{Turns on quiet mode, disabling all messages except warnings and errors (default: FALSE)}
 
 \item{host}{Host name for the remote server (default: lyra.qut.edu.au)}
 
 \item{port}{Port number to be used for SSH and SCP to the host (defualt: 22)}
-
-\item{submission.file}{ADD SOON}
 }
 \value{
 A structure (dataframe or datatable, matches the structure of \code{data}) which contains the details of every

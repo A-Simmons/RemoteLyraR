@@ -5,10 +5,11 @@
 #' @param remote.folder Root directory for the project stored on the remote file server.REQUIRED
 #' @param script.file R file to be called. REQUIRED
 #' @param data ADD SOON. REQUIRED
+#' @param submission.file ADD SOON
 #' @param quiet Turns on quiet mode, disabling all messages except warnings and errors (default: FALSE)
 #' @param host Host name for the remote server (default: lyra.qut.edu.au)
 #' @param port Port number to be used for SSH and SCP to the host (defualt: 22)
-#' @param submission.file ADD SOON
+#' @ignore.warning Suppress warning messages (default: FALSE)
 #'
 #' @description
 #' Submit Job to HPC where project files are already stored on the file server.
@@ -49,7 +50,7 @@
 #' The structure is also saved as a .rds file as well as parsed into a DSV file (space-delimited). These files are saved
 #' to the \code{remote.folder}.
 
-submitRemote <- function(credentials, remote.folder, script.file, data, quiet=FALSE, host="lyra.qut.edu.au", port=22, submission.file) {
+submitRemote <- function(credentials, remote.folder, script.file, data, submission.file, quiet=FALSE, host="lyra.qut.edu.au", port=22, ignore.warning=FALSE) {
 
   username = credentials[1]; password = credentials[2];
   ### ARUGMENT CHECK ###
@@ -66,27 +67,95 @@ submitRemote <- function(credentials, remote.folder, script.file, data, quiet=FA
   ## ACTUALLY WRITE THIS
 
   # Check DATA structure
+  err_warn<-checkData(data)
 
+  ### Transform data structure
+  submissionDF<-createSubmissionDataframe(data)
 
-  ### Transform data structure ###
+  ### Add submission string column
+  submissionDF<-createSubmissionString(submissionDF)
+}
 
+### Create argument string
+createSubmissionString<-function(df,scriptFile) {
+  df$submissionString<-NA
+  for (ii in 1:nrow(df)) {
+    df$submissionString[ii]<-paste("-v scriptFile=",scriptFile,",",df$argument_string[ii],sep="")
+  }
+  return(df)
+}
 
+### Create Submission dataframe
+createSubmissionDataframe<-function(data) {
 
+  repeatColExists <- any(colnames(data) %in% "REPEAT")
+  ncpusColExists <- any(colnames(data) %in% "NCPUS")
+  dnrColExists <- any(colnames(data) %in% "DONOTRUN")
+  # Remove all DONOTRUN rows
+  if (dnrColExists) data<-data[data$DONOTRUN==TRUE,]
+  # Determine number of submissions
+  if (repeatColExists) nrows<-sum(data$REPEAT) else nrows<-nrow(data)
+
+  # Create argument dataframe
+  reserved.colnames<-c("JOBNAME","MEMORY","WALLTIME","NCPUS","REPEAT","DONOTRUN","seed")
+  argument.names<-colnames(data)[!(colnames(data) %in% reserved.colnames)]
+  parameter.names<-c("jobname","memory","walltime","ncpus",argument.names,"seed","argument_string")
+  argumentDF<-data.frame(matrix(NA,ncol=length(parameter.names),nrow=nrows))
+  colnames(argumentDF)<-parameter.names
+
+  # Add RNG Seed column
+  argumentDF$seed<-ceiling(runif(nrows, 0, 10^8))
+
+  # Iterate for each submission
+  for (ii in 1:nrows) {
+    # Define which row in data to pull from
+    if (repeatColExists) jobRow<-which(cumsum(data$REPEAT)>=ii)[1] else jobRow<-ii
+    # Define number of times to repeat job (Default = 1)
+    if (repeatColExists) jobRepeats<-data$REPEAT[jobRow] else jobRepeats<-1
+    # Define jobname with unique ID if repeat is on (Default=1)
+    if (repeatColExists) repCount<-ii-sum(data$REPEAT[0:(jobRow-1)])
+    if (repeatColExists) jobname<-paste(data$JOBNAME[jobRow],"_rep",repCount,sep="") else jobname<-data$JOBNAME[jobRow]
+    argumentDF$jobname[ii]<-jobname # Jobname
+    # Translate values from data to argumentDF
+    argumentDF$memory[ii]<-as.vector(data$MEMORY[jobRow]) # Memory
+    argumentDF$walltime[ii]<-as.vector(data$WALLTIME[jobRow]) # Walltime
+    if (ncpusColExists) argumentDF$ncpus[ii]<-as.vector(data$NCPUS[jobRow]) else argumentDF$ncpus[ii]<-1 # NCPUS
+    argumentDF[ii,argument.names]<-data[jobRow,argument.names] # User specified arguments
+    # Construct argument string
+    arguments<-argumentDF[ii,c("jobname","seed",argument.names)]
+    argumentDF$argument_string[ii]<-argumentString(arguments)
+  }
+  return(argumentDF)
+}
+
+### Create argument string
+argumentString<-function(arguments) {
+  argumentString<-"argString=--args"
+  col.names<-colnames(arguments)
+  col.values<-arguments[1,]
+  for (ii in 1:ncol(arguments)) {
+    argumentString<-paste(argumentString," ",col.names[ii],"=",col.values[ii],sep="")
+  }
+  return(argumentString)
 }
 
 ### Check data structure
-checkData <- function(data) {
+checkData<-function(data) {
   colnames <- colnames(data)
   jobnameColExists <- any(colnames %in% "JOBNAME")
   memoryColExists <- any(colnames %in% "MEMORY")
   walltimeColExists <- any(colnames %in% "WALLTIME")
   ncpusColExists <- any(colnames %in% "NCPUS")
-  dnrColExists <- any(colnames %in% "DONOTRUNJOB")
-  #repeatColExists <- any(colnames %in% "REPEAT")
+  dnrColExists <- any(colnames %in% "DONOTRUN")
+  repeatColExists <- any(colnames %in% "REPEAT")
 
   # Determine structure type
   if (is.data.frame(data)) structure<-"data.frame"
   if (is.data.table(data)) structure<-"data.table"
+
+  # Initialise Error and Warning strings
+  err_str<-character(0)
+  warn_str<-character(0)
 
   # Check that JOBNAME, MEMORY and WALLTIME exist as columns in the data structure
   if (!((jobnameColExists) && (memoryColExists) && (walltimeColExists))) {
@@ -96,8 +165,8 @@ checkData <- function(data) {
     if (!memoryColExists) memoryError<-"MEMORY, " else memoryError<-""
     if (!walltimeColExists) walltimeError<-"WALLTIME " else walltimeError<-""
     # Send error
-    errorMsg <- paste("\nColumn",plural,jobnameError,memoryError,walltimeError,"not found in ",structure,sep="")
-    stop(errorMsg)
+    missingColsErr <- paste("\nColumn",plural,jobnameError,memoryError,walltimeError,"not found in ",structure,sep="")
+    err_str<-paste(err_str,missingColsErr,sep="\n\n")
   }
 
 
@@ -114,18 +183,21 @@ checkData <- function(data) {
   ### Check formatting of memory is correct
   invalidRowsMemory<-grep("^[0-9]+[m_g]b$",tolower(data$MEMORY),invert=TRUE)
   memoryError<-createErrorString(invalidRowsMemory,data$MEMORY,"MEMORY")
+  if (length(memoryError) != 0) err_str<-paste(err_str,memoryError,sep="\n\n")
 
 
   ### Check formatting of walltime is correct
   invalidRowsWalltime<-grep("^[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}$|^([0-9]*\\.[0-9]+|[0-9]+)$",tolower(data$WALLTIME),invert=TRUE)
   invalidRowsWalltime = intersect(invalidRowsWalltime_Num,invalidRowsWalltime_HMS)
   walltimeError<-createErrorString(invalidRowsWalltime,data$WALLTIME,"WALLTIME")
+  if (length(walltimeError) != 0) err_str<-paste(err_str,walltimeError,sep="\n\n")
 
 
   ### Check formatting of NCPUS is correct
   if (ncpusColExists) {
     invalidRowsNCPUS<-grep("^[0-9]*$",tolower(data$NCPUS),invert=TRUE) # Invalid in floating point form
     ncpusError<-createErrorString(invalidRowsNCPUS,data$NCPUS,"NCPUS")
+    if (length(ncpusError) != 0) err_str<-paste(err_str,ncpusError,sep="\n\n")
   }
 
 
@@ -133,6 +205,7 @@ checkData <- function(data) {
   if (dnrColExists) {
     invalidRowsDNR<-grep("^[TRUE_FALSE]+$",tolower(data$DONOTRUNJOB),invert=TRUE) # Invalid in floating point form
     dnrError<-createErrorString(invalidRowsDNR,data$DONOTRUNJOB,"DONOTRUN")
+    if (length(dnrError) != 0) err_str<-paste(err_str,dnrError,sep="\n\n")
   }
 
 
@@ -140,9 +213,17 @@ checkData <- function(data) {
   if (dnrColExists) {
     invalidRowsREPEAT<-grep("^[TRUE_FALSE]+$",tolower(data$REPEAT),invert=TRUE) # Invalid in floating point form
     repeatError<-createErrorString(invalidRowsREPEAT,data$REPEAT,"REPEAT")
+    if (length(repeatError) != 0) err_str<-paste(err_str,repeatError,sep="\n\n")
   }
+
+
+  ### Consolidate Errors and Warnings
+  warn_str<-paste(dupJobNameWarning,sep="\n")
+  err_warn <- c(warn_str,err_str)
+  return(err_warn)
 }
 
+### Create error string from invalid rows
 createErrorString<-function(rows,data.vector,colName) {
   string<-character(0)
   for (row in rows) {
@@ -170,7 +251,6 @@ checkConnection <- function(username,password,host="lyra.qut.edu.au",port=22) {
   }
 }
 
-
 ### Check that server can be accessed
 checkFolderExists <- function(directory,username,password,host="lyra.qut.edu.au",port=22) {
   command=paste("[[ -d /",directory," ]] && echo FOLDER_FOUND || echo FOLDER_NOT_FOUND",sep="")
@@ -191,7 +271,6 @@ checkFolderExists <- function(directory,username,password,host="lyra.qut.edu.au"
     print("Folder Located.")
   }
 }
-
 
 ### Check that server can be accessed
 checkScriptFileExists <- function(directory,file,username,password,host="lyra.qut.edu.au",port=22) {
