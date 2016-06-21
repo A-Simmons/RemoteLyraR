@@ -51,8 +51,8 @@
 #' to the \code{remote.folder}.
 
 submitRemote <- function(credentials, remote.folder, script.file, data, submission.file, quiet=FALSE, host="lyra.qut.edu.au", port=22, ignore.warning=FALSE) {
-  requireNamespace(stats)
-  requireNamespace(data.table)
+  requireNamespace("stats")
+  requireNamespace("data.table")
   username = credentials[1]; password = credentials[2];
   ### ARUGMENT CHECK ###
   # Check that server can be accessed
