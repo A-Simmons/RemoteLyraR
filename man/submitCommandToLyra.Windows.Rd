@@ -8,6 +8,12 @@ submitCommandToLyra.Windows(command, username, password,
   host = "lyra.qut.edu.au", port = 22)
 }
 \arguments{
+\item{command}{TO BE ADDED}
+
+\item{username}{TO BE ADDED}
+
+\item{password}{TO BE ADDED}
+
 \item{host}{Host name for the remote server (default: lyra.qut.edu.au)}
 
 \item{port}{Port number to be used for SSH and SCP to the host (defualt: 22)}

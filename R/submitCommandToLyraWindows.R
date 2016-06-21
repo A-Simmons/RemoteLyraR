@@ -1,9 +1,9 @@
 #' Submit command to HPC from Windows.
 #'
 #' @export
-#' @param command
-#' @param username
-#' @param password
+#' @param command TO BE ADDED
+#' @param username TO BE ADDED
+#' @param password TO BE ADDED
 #' @param host Host name for the remote server (default: lyra.qut.edu.au)
 #' @param port Port number to be used for SSH and SCP to the host (defualt: 22)
 submitCommandToLyra.Windows <- function(command,username,password,host="lyra.qut.edu.au",port=22) {
