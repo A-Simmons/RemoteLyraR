@@ -80,8 +80,8 @@ checkData <- function(data) {
   jobnameColExists <- any(colnames %in% "JOBNAME")
   memoryColExists <- any(colnames %in% "MEMORY")
   walltimeColExists <- any(colnames %in% "WALLTIME")
-  #ncpusColExists <- any(colnames %in% "NCPUS")
-  #dnrColExists <- any(colnames %in% "DONOTRUNJOB")
+  ncpusColExists <- any(colnames %in% "NCPUS")
+  dnrColExists <- any(colnames %in% "DONOTRUNJOB")
   #repeatColExists <- any(colnames %in% "REPEAT")
 
   # Determine structure type
@@ -101,30 +101,6 @@ checkData <- function(data) {
   }
 
 
-  ### Check formatting of memory is correct
-  invalidRowsMemory<-grep("^[0-9]+[m_g]b$",tolower(data$MEMORY),invert=TRUE)
-  # Commit problematic fields to error message
-  memoryError<-character(0)
-  for (row in invalidRowsMemory) {
-    memoryError<-paste(memoryError,"\nRow ",row,": ",data$MEMORY[row],sep="")
-  }
-  if (length(memoryError)!=0) memoryError<-paste("Invalid MEMORY fields found",memoryError)
-
-
-
-  ### Check formatting of walltime is correct
-  invalidRowsWalltime_Num<-grep("^[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}$",tolower(data$WALLTIME),invert=TRUE) # Invalid due to <hours>:<minutes>:<seconds>
-  invalidRowsWalltime_HMS<-grep("^([0-9]*\\.[0-9]+|[0-9]+)$",tolower(data$WALLTIME),invert=TRUE) # Invalid in floating point form
-  invalidRowsWalltime = intersect(invalidRowsWalltime_Num,invalidRowsWalltime_HMS)
-  # Commit problematic fields to error message
-  walltimeError<-character(0)
-  for (row in invalidRowsWalltime) {
-    walltimeError<-paste(walltimeError,"\nRow ",row,": ",data$WALLTIME[row],sep="")
-  }
-  if (length(walltimeError)!=0) walltimeError<-paste("Invalid WALLTIME fields found",walltimeError)
-
-
-
   ### Check that each jobname is unique
   dupJobNameWarning<-character(0)
   dupJobnames <- as.vector(data$JOBNAME[duplicated(data$JOBNAME)])
@@ -135,7 +111,44 @@ checkData <- function(data) {
   if (length(dupJobNameWarning)!=0) dupJobNameWarning<-paste("Duplicated JOBNAMEs found",dupJobNameWarning)
 
 
+  ### Check formatting of memory is correct
+  invalidRowsMemory<-grep("^[0-9]+[m_g]b$",tolower(data$MEMORY),invert=TRUE)
+  memoryError<-createErrorString(invalidRowsMemory,data$MEMORY,"MEMORY")
 
+
+  ### Check formatting of walltime is correct
+  invalidRowsWalltime<-grep("^[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}$|^([0-9]*\\.[0-9]+|[0-9]+)$",tolower(data$WALLTIME),invert=TRUE)
+  invalidRowsWalltime = intersect(invalidRowsWalltime_Num,invalidRowsWalltime_HMS)
+  walltimeError<-createErrorString(invalidRowsWalltime,data$WALLTIME,"WALLTIME")
+
+
+  ### Check formatting of NCPUS is correct
+  if (ncpusColExists) {
+    invalidRowsNCPUS<-grep("^[0-9]*$",tolower(data$NCPUS),invert=TRUE) # Invalid in floating point form
+    ncpusError<-createErrorString(invalidRowsNCPUS,data$NCPUS,"NCPUS")
+  }
+
+
+  ### Check formatting of DONOTRUN is correct
+  if (dnrColExists) {
+    invalidRowsDNR<-grep("^[TRUE_FALSE]+$",tolower(data$DONOTRUNJOB),invert=TRUE) # Invalid in floating point form
+    dnrError<-createErrorString(invalidRowsDNR,data$DONOTRUNJOB,"DONOTRUN")
+  }
+
+
+  ### Check formatting of REPEAT is correct
+  if (dnrColExists) {
+    invalidRowsREPEAT<-grep("^[TRUE_FALSE]+$",tolower(data$REPEAT),invert=TRUE) # Invalid in floating point form
+    repeatError<-createErrorString(invalidRowsREPEAT,data$REPEAT,"REPEAT")
+  }
+}
+
+createErrorString<-function(rows,data.vector,colName) {
+  string<-character(0)
+  for (row in rows) {
+    string<-paste(string,"\nRow ",row,": ",data.vector[row],sep="")
+  }
+  if (length(string)!=0) string<-paste("Invalid",colName,"fields found",string)
 }
 
 ### Check that server can be accessed
