@@ -1,4 +1,7 @@
-submitCommandToLyra.Windows <- function(command,username,password,host,port) {
+#' Submit command to HPC from Windows.
+#'
+#' @export
+submitCommandToLyra.Windows <- function(command,username,password,host="lyra.qut.edu.au",port=22) {
   # Parameters for plink
   cmd.cd <- paste("cd", addressToScripts("exe"))
   cmd.plinkCmd <- "& plink -v"
