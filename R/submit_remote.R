@@ -49,6 +49,8 @@
 #'
 #' The structure is also saved as a .rds file as well as parsed into a DSV file (space-delimited). These files are saved
 #' to the \code{remote.folder}.
+#' @import stats
+#' @import data.table
 
 submitRemote <- function(credentials, remote.folder, script.file, data, submission.file, quiet=FALSE, host="lyra.qut.edu.au", port=22, ignore.warning=FALSE) {
   requireNamespace("stats")

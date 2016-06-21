@@ -3,3 +3,5 @@
 export(initDataFrame)
 export(submitCommandToLyra)
 export(submitRemote)
+import(data.table)
+import(stats)
