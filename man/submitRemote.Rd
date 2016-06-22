@@ -4,7 +4,7 @@
 \alias{submitRemote}
 \title{Submit Job to HPC (Remotely Stored Project)}
 \usage{
-submitRemote(credentials, remote.folder, script.file, data, submission.file,
+submitRemote(credentials, remote.folder, script.file, submission.file, data,
   quiet = FALSE, host = "lyra.qut.edu.au", port = 22,
   ignore.warning = FALSE)
 }
@@ -15,9 +15,9 @@ submitRemote(credentials, remote.folder, script.file, data, submission.file,
 
 \item{script.file}{R file to be called. REQUIRED}
 
-\item{data}{ADD SOON. REQUIRED}
-
 \item{submission.file}{ADD SOON}
+
+\item{data}{ADD SOON. REQUIRED}
 
 \item{quiet}{Turns on quiet mode, disabling all messages except warnings and errors (default: FALSE)}
 

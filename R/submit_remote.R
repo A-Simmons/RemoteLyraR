@@ -4,8 +4,8 @@
 #' @param credentials Vector of username and password (<Username>, <Password>). REQUIRED
 #' @param remote.folder Root directory for the project stored on the remote file server.REQUIRED
 #' @param script.file R file to be called. REQUIRED
-#' @param data ADD SOON. REQUIRED
 #' @param submission.file ADD SOON
+#' @param data ADD SOON. REQUIRED
 #' @param quiet Turns on quiet mode, disabling all messages except warnings and errors (default: FALSE)
 #' @param host Host name for the remote server (default: lyra.qut.edu.au)
 #' @param port Port number to be used for SSH and SCP to the host (defualt: 22)
@@ -52,7 +52,7 @@
 #' @import stats
 #' @import data.table
 
-submitRemote <- function(credentials, remote.folder, script.file, data, submission.file, quiet=FALSE, host="lyra.qut.edu.au", port=22, ignore.warning=FALSE) {
+submitRemote <- function(credentials, remote.folder, script.file, submission.file, data, quiet=FALSE, host="lyra.qut.edu.au", port=22, ignore.warning=FALSE) {
   requireNamespace("stats")
   requireNamespace("data.table")
   username = credentials[1]; password = credentials[2];
@@ -66,28 +66,40 @@ submitRemote <- function(credentials, remote.folder, script.file, data, submissi
   # Check that script file exists in remote folder
   checkScriptFileExists(remote.folder,script.file,username,password,host=host,port=port)
 
-  # Check that submission.file is in local directory
-  ## ACTUALLY WRITE THIS
+  # Check that submission.file is in remote directory
+  checkSubmissionFileExists(remote.folder,submission.file,username,password,host=host,port=port)
 
   # Check DATA structure
-  err_warn<-checkData(data)
+  #err_warn<-checkData(data)
 
   ### Transform data structure
   submissionDF<-createSubmissionDataframe(data)
 
   ### Add submission string column
-  submissionDF<-createSubmissionString(submissionDF)
+  submissionDF<-createSubmissionString(submissionDF,script.file)
+
+  ## Send submission to LYRA
+  sendSubmission(submissionDF,remote.folder,submission.file,credentials,host,port)
+}
+
+sendSubmission<-function(df,remote.folder,submission.file,credentials,host,port) {
+  username = credentials[1]; password = credentials[2];
+  nrows<-nrow(df)
+  for (ii in 1:nrows) {
+    submissionCmd<-paste("cd ",remote.folder,"; qsub ",df$submissionString[ii]," -N ",df$jobname[ii]," -l walltime=",df$walltime[ii]," -l ncpus=",df$ncpus[ii]," -l mem=",df$memory[ii]," ",submission.file,sep="")
+    std.out<-submitCommandToLyra(submissionCmd,username,password)
+    print(paste("Job",df$jobname[ii],"submitted successfully with Job ID",sub(".pbs\\r","\\1",std.out[82]),sep=" "))
+  }
 }
 
 ### Create argument string
 createSubmissionString<-function(df,scriptFile) {
   df$submissionString<-NA
   for (ii in 1:nrow(df)) {
-    df$submissionString[ii]<-paste("-v scriptFile=",scriptFile,",",df$argument_string[ii],sep="")
+    df$submissionString[ii]<-paste("-v scriptFile=\"",scriptFile,",",df$argument_string[ii],"\"",sep="")
   }
   return(df)
 }
-
 
 ### Create Submission dataframe
 createSubmissionDataframe<-function(data) {
@@ -104,8 +116,7 @@ createSubmissionDataframe<-function(data) {
   reserved.colnames<-c("JOBNAME","MEMORY","WALLTIME","NCPUS","REPEAT","DONOTRUN","seed")
   argument.names<-colnames(data)[!(colnames(data) %in% reserved.colnames)]
   parameter.names<-c("jobname","memory","walltime","ncpus",argument.names,"seed","argument_string")
-  argumentDF<-data.frame(matrix(NA,ncol=length(parameter.names),nrow=nrows))
-  colnames(argumentDF)<-parameter.names
+  argumentDF<-data.frame(matrix(NA,ncol=length(parameter.names),nrow=nrows,dimnames = list(NULL, parameter.names)))
 
   # Add RNG Seed column
   argumentDF$seed<-ceiling(runif(nrows, 0, 10^8))
@@ -119,12 +130,13 @@ createSubmissionDataframe<-function(data) {
     # Define jobname with unique ID if repeat is on (Default=1)
     if (repeatColExists) repCount<-ii-sum(data$REPEAT[0:(jobRow-1)])
     if (repeatColExists) jobname<-paste(data$JOBNAME[jobRow],"_rep",repCount,sep="") else jobname<-data$JOBNAME[jobRow]
-    argumentDF$jobname[ii]<-jobname # Jobname
+    argumentDF$jobname[ii]<-as.vector(jobname) # Jobname
     # Translate values from data to argumentDF
     argumentDF$memory[ii]<-as.vector(data$MEMORY[jobRow]) # Memory
     argumentDF$walltime[ii]<-as.vector(data$WALLTIME[jobRow]) # Walltime
     if (ncpusColExists) argumentDF$ncpus[ii]<-as.vector(data$NCPUS[jobRow]) else argumentDF$ncpus[ii]<-1 # NCPUS
-    argumentDF[ii,argument.names]<-data[jobRow,argument.names] # User specified arguments
+    argumentDF[ii,argument.names]<-as.vector(t(data[jobRow,argument.names])[,1]) # User specified arguments
+
     # Construct argument string
     arguments<-argumentDF[ii,c("jobname","seed",argument.names)]
     argumentDF$argument_string[ii]<-argumentString(arguments)
@@ -256,8 +268,7 @@ checkConnection <- function(username,password,host="lyra.qut.edu.au",port=22) {
 
 ### Check that server can be accessed
 checkFolderExists <- function(directory,username,password,host="lyra.qut.edu.au",port=22) {
-  command=paste("[[ -d /",directory," ]] && echo FOLDER_FOUND || echo FOLDER_NOT_FOUND",sep="")
-
+  command=paste("[[ -d ",directory," ]] && echo FOLDER_FOUND || echo FOLDER_NOT_FOUND",sep="")
 
   if (.Platform$OS.type == "windows") {
     parsed_String <- submitCommandToLyra.Windows(command,username,password,host,port)
@@ -269,7 +280,8 @@ checkFolderExists <- function(directory,username,password,host="lyra.qut.edu.au"
     stop("Your platform is not supported")
   }
   if (length(grep('FOLDER_NOT_FOUND',parsed_String,value=TRUE)) > count ) {
-    stop(paste("The directory: /",directory," could not be found.",sep=""))
+    print(parsed_String)
+    stop(paste("The directory: ",directory," could not be found.",sep=""))
   } else if (length(grep('FOLDER_FOUND',parsed_String,value=TRUE)) > count ) {
     print("Folder Located.")
   }
@@ -294,5 +306,27 @@ checkScriptFileExists <- function(directory,file,username,password,host="lyra.qu
     stop(paste("The script file: /",file," could not be found.",sep=""))
   } else if (length(grep('FILE_FOUND',parsed_String,value=TRUE)) > count ) {
     print("Script file Located.")
+  }
+}
+
+### Check that server can be accessed
+checkSubmissionFileExists <- function(directory,file,username,password,host="lyra.qut.edu.au",port=22) {
+  command=paste("[[ -f ./",directory,"/",file, " ]] && echo FILE_FOUND || echo FILE_NOT_FOUND",sep="")
+
+  if (.Platform$OS.type == "windows") {
+    parsed_String <- submitCommandToLyra.Windows(command,username,password,host,port)
+    count <- 0
+  } else if (.Platform$OS.type == "unix") {
+    parsed_String <- submitCommandToLyra.Unix(command,username,password,host,port)
+    count <- 1
+  } else {
+    stop("Your platform is not supported")
+  }
+
+
+  if (length(grep('FILE_NOT_FOUND',parsed_String,value=TRUE)) > count ) {
+    stop(paste("The submission file: /",file," could not be found.",sep=""))
+  } else if (length(grep('FILE_FOUND',parsed_String,value=TRUE)) > count ) {
+    print("Submission file Located.")
   }
 }

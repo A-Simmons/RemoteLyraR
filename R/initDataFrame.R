@@ -1,6 +1,3 @@
-#' Initialise dataframe used to parse parameters to jobs.
-#'
-#' @export
 initDataFrame <- function()
 {
   JOBNAME<-c("TEST_JOB")
