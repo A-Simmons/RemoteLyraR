@@ -9,5 +9,9 @@ Description: More about what it does (maybe more than one line)
 License: MIT + file LICENSE
 LazyData: TRUE
 RoxygenNote: 5.0.1
-Imports: stats, data.table, installr
+Imports:
+      data.table,
+      stats
+Suggests:
+      installr
 Exports: CODECOV_TOKEN="6b443d0b-0526-4977-9bd5-7f74ecc60304"

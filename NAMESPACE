@@ -3,4 +3,3 @@
 export(submitRemote)
 import(data.table)
 import(stats)
-import(installr)
