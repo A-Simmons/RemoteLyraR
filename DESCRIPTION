@@ -12,6 +12,4 @@ RoxygenNote: 5.0.1
 Imports:
       data.table,
       stats
-Suggests:
-      installr
 Exports: CODECOV_TOKEN="6b443d0b-0526-4977-9bd5-7f74ecc60304"
