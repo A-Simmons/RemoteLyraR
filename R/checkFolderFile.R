@@ -7,11 +7,11 @@ checkRemoteFolderFileExists <-
     # Generate Command
     if (missing(file)) {
       grep.pattern.notfound <- "FOLDER_NOT_FOUND"
-      command = paste("[[ -f ./",directory,"/",file, " ]] && echo FILE_FOUND || echo FILE_NOT_FOUND",sep =
+      command = paste("[[ -d ",directory," ]] && echo FOLDER_FOUND || echo FOLDER_NOT_FOUND",sep =
                         "")
     } else {
       grep.pattern.notfound <- "FILE_NOT_FOUND"
-      command = paste("[[ -d ",directory," ]] && echo FOLDER_FOUND || echo FOLDER_NOT_FOUND",sep =
+      command = paste("[[ -f ./",directory,"/",file, " ]] && echo FILE_FOUND || echo FILE_NOT_FOUND",sep =
                         "")
     }
 

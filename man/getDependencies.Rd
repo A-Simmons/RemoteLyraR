@@ -5,17 +5,17 @@
 \title{Get package source files and install to a personal library on the HPC file
 server}
 \usage{
-getDependencies(credentials, packages.install, local.dest, remote.dest,
+getDependencies(credentials, packages.toinstall, local.dest, remote.dest,
   host = "lyra.qut.edu.au", port = 22)
 }
 \arguments{
 \item{credentials}{Vector of username and password (<Username>, <Password>).
 REQUIRED}
 
-\item{packages.install}{Vector of packages to be installed. REQUIRED}
-
 \item{local.dest}{Path to store the source files locally before moving to the
 HPC file server.}
+
+\item{packages.install}{Vector of packages to be installed. REQUIRED}
 
 \item{remote.library}{Path to personal library on the HPC file server.}
 }

@@ -22,7 +22,7 @@
 #' @return
 #'
 getDependencies <-
-  function(credentials,packages.install,local.dest,remote.dest,host = "lyra.qut.edu.au", port = 22) {
+  function(credentials,packages.toinstall,local.dest,remote.dest,host = "lyra.qut.edu.au", port = 22) {
     username = credentials[1]; password = credentials[2];
 
     ### Initial Checks
@@ -68,7 +68,7 @@ getDependencies <-
     scpToLyra(source.files,paste(remote.dest,"source",sep=""),username,password,host,port)
 
     # Run Install Scripts
-    command <- paste(install.strings[1],install.strings[2],sep=" && ")
+    command <- paste(install.strings[1],install.strings[2],install.strings[3],sep=" && ")
     submitCommandToLyra(command,username,password,host,port)
   }
 
