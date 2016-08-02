@@ -3,9 +3,9 @@
 #' @export
 scpToLyra <- function(source,dest,username,password,host="lyra.qut.edu.au",port=22) {
   if (.Platform$OS.type == "windows") {
-    std.return<-scpToLyra.Windows(command,username,password,host,port)
+    std.return<-scpToLyra.Windows(source,username,password,host,port)
   } else if (.Platform$OS.type == "unix") {
-    std.return<-scpToLyra.Unix(command,username,password,host,port)
+    std.return<-scpToLyra.Unix(source,dest,username,password,host,port)
   } else {
     stop("Your platform is not supported")
   }
@@ -35,7 +35,7 @@ scpToLyra.Unix <- function(source,dest,username,password,host,port) {
   cmd.cd <- paste("cd", addressToScripts("sh"))
 
   # Concatenate commands for shell
-  cmd <- paste(cmd.cd, cmd.scpCmd, host, username, password, source, dest)
+  cmd <- paste(cmd.cd, cmd.scpCmd, paste(host,dest,sep=":"), username, password, source)
 
   # Send command to shell
   some_String <- system(cmd,intern=TRUE,ignore.stderr=TRUE)

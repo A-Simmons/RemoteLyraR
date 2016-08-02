@@ -2,7 +2,7 @@
 
 set timeout 20
 
-set ip [lindex $argv 0]
+set ipdest [lindex $argv 0]
 
 set user [lindex $argv 1]
 
@@ -10,9 +10,7 @@ set password [lindex $argv 2]
 
 set source [lindex $argv 3]
 
-set dest [lindex $argv 4]
-
-spawn scp $source "$user\@$ip:$dest"
+spawn scp $source "$user\@$ipdest"
 
 expect "password:"
 
