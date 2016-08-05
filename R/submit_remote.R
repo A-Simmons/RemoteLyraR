@@ -390,7 +390,6 @@ checkSubmissionFileExists <-
     }
   }
 
-
 appendToLog <- function(stringLine) {
   assign("log",c(get("log",envir = remoteLyraR.Env),stringLine),envir = remoteLyraR.Env)
 }

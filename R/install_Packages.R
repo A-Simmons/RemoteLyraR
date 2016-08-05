@@ -22,12 +22,31 @@
 #' @return
 #'
 getDependencies <-
-  function(credentials,packages.toinstall,local.dest,remote.dest,host = "lyra.qut.edu.au", port = 22) {
-    username = credentials[1]; password = credentials[2];
+  function(credentials, packages.toinstall, local.dest, remote.dest, host = "lyra.qut.edu.au", port = 22) {
+    # Main function for installing packages on the remote device.
+    #
+    # Args:
+    #   credentials: Vector of the username and password c("<username>", "<password>").
+    #   packages.toinstall: Vector of strings of the package names that need to be installed.
+    #   local.dest: Path on the local device to store the package's source before copying to the remote device.
+    #   remote.dest: Path on the remote device for the Personal Library to install too.
+    #   host: Address for the host device. (Default="lyra.qut.edu.au", QUT's HPC).
+    #   port: Port to use for SSH. (Default = 22).
+    #
+    # Returns:
+    #
+    # TODO:
+    #   - Allow acceptance of dataframe for packages.toinstall to include specific version of package.
+    #   - But in some flags to return.
+    #   - Add option for quiet mode
+    #   - Add option to force some operations (such as overwritting and remote folder creation)
+
+    username = credentials[1]
+    password = credentials[2]
 
     ### Initial Checks
     # Check Credentials
-    flag <- checkConnection(username,password)
+    flag <- checkConnection(username, password)
     if (flag) {
       stop("Connection refused. Check credentials.")
     }
@@ -40,49 +59,60 @@ getDependencies <-
     }
 
     # Check Remote Folder Pathing
-    flag <- checkRemoteFolderFileExists(directory=remote.dest,username=username,password=password,host=host,port=port)
+    flag <- checkRemoteFolderFileExists(directory=remote.dest,u sername=username, password=password, host=host, port=port)
     if (flag) {
-      warning(paste("Could not find remote directory",remote.dest))
+      warning(paste("Could not find remote directory", remote.dest))
     }
 
     # Check Remote Folder source Pathing
-    flag <- checkRemoteFolderFileExists(directory=paste(remote.dest,"source",sep=""),username=username,password=password,host=host,port=port)
+    flag <- checkRemoteFolderFileExists(directory=paste(remote.dest, "source", sep=""), username=username, password=password, host=host, port=port)
     if (flag) {
-      warning(paste("Could not find remote directory for source files",paste(remote.dest,"source",sep="")))
+      warning(paste("Could not find remote directory for source files", paste(remote.dest, "source", sep="")))
     }
 
     # Make list of dependencies
-    pack.df <- data.frame(package = packages.toinstall,rank = 0)
+    pack.df <- data.frame(package = packages.toinstall, rank = 0)
     for (package in packages.toinstall) {
-      pack.df <- addPackagesToInstallList(package,pack.df,1)
+      pack.df <- addPackagesToInstallList(package, pack.df, 1)
     }
 
     # Clean up and Download files
-    pack.df <- dfCleanUp(pack.df,local.dest)
+    pack.df <- dfCleanUp(pack.df, local.dest)
 
     # Print Summary Messages
-    install.strings <- packageSummary(pack.df,remote.dest,quiet)
+    install.strings <- packageSummary(pack.df, remote.dest, quiet)
 
     # Copy files to remote.dest on HPC-FS
-    source.files <- paste(local.dest,"*",sep="")
-    scpToLyra(source.files,paste(remote.dest,"source",sep=""),username,password,host,port)
+    source.files <- paste(local.dest, "*", sep="")
+    scpToLyra(source.files,paste(remote.dest, "source", sep=""), username, password, host, port)
 
     # Run Install Scripts
-    command <- paste(install.strings[1],install.strings[2],install.strings[3],sep=" && ")
-    submitCommandToLyra(command,username,password,host,port)
+    command <- paste(install.strings[1], install.strings[2], install.strings[3], sep=" && ")
+    submitCommandToLyra(command, username, password, host, port)
   }
 
-packageSummary <- function(pack.df,remote.dest,library.dest,quiet = TRUE) {
+packageSummary <- function(pack.df, remote.dest, library.dest, quiet = TRUE) {
+  # Generates commands needed to install the packages to be installed on the remote device.
+  #
+  # Args:
+  #   pack.df: A dataframe that contians the package information to be installed.
+  #   remote.dest: Path to source files on the remote device.
+  #   library.dest: Path to the Remote Library on  the remote device.
+  #   quiet:
+  #
+  # Returns:
+  #   Vector of strings needed to install the packages on the remote device.
+  #     1. String to load required modules, including R
+  #     2. String to change directory to the package source files
+  #     3. String to install the packages
+
   ### Create Strings
-  # Make module load string
-  module.load.string <- getModulesToLoad(pack.df$package)
-  # CD to source location
-  cd.string <- paste("cd",paste(remote.dest,"source",sep=""))
+  module.load.string <- getModulesToLoad(pack.df$package)  # Make module load string
+  cd.string <- paste("cd", paste(remote.dest, "source", sep=""))  # CD to source location
   # Make Install Script String
-  install.string <-
-    paste("R CMD INSTALL --library=",remote.dest," ",sep = "")
+  install.string <- paste("R CMD INSTALL --library=", remote.dest, " ", sep = "")
   for (file in pack.df$fileName) {
-    install.string <- paste(install.string,file)
+    install.string <- paste(install.string, file)
   }
 
   ### Print Summaries
@@ -91,26 +121,34 @@ packageSummary <- function(pack.df,remote.dest,library.dest,quiet = TRUE) {
     cat(sprintf("\nList of downloaded packages:\n"))
     print(pack.df)
     # Module Load String
-    cat(
-      sprintf(
+    cat(sprintf(
         "\nLoad the required modules with this line. Note, this line ...
         will be needed in your .pbs or .sub file to ensure all modules are loaded ...
-        for code execution, not just installation!\n\n%s",module.load.string
-      )
-      )
+        for code execution, not just installation!\n\n%s", module.load.string))
     # Install Script
-    cat(
-      sprintf(
+    cat(sprintf(
         "\nInstall string. CD to the location you store the source ...
-        files and add the location of your personal library.\n\n%s",install.string
-      )
-      )
+        files and add the location of your personal library.\n\n%s", install.string))
   }
 
-  return(c(module.load.string,cd.string,install.string))
+  return(c(module.load.string, cd.string, install.string))
   }
 
 dfCleanUp <- function(pack.df,local.dest) {
+  # Generates commands needed to install the packages to be installed on the remote device.
+  #
+  # Args:
+  #   pack.df:
+  #   remote.dest:
+  #   library.dest:
+  #   quiet:
+  #
+  # Returns:
+  #   Vector of strings needed to install the packages on the remote device.
+  #     1. String to load required modules, including R
+  #     2. String to change directory to the package source files
+  #     3. String to install the packages
+
   # Remove any already on Lyra
   pack.df <- removeInstalledPackages(pack.df)
   # Order descending by rank

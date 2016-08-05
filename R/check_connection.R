@@ -1,23 +1,41 @@
 #' checkConnection
 #'
 #' @export
-checkConnection <-
-  function(username,password,host = "lyra.qut.edu.au",port = 22) {
-    appendToLog(c("Sending credentials to",host,"over port",port))
+checkConnection <- function(username, password, host = "lyra.qut.edu.au",
+  port = 22) {
+  # Determines if a connection can be made with the host device using the provided credentials.
+  #
+  # Args:
+  #   username: Username to log in to the host.
+  #   password: Password to log in to the host.
+  #   host: Address for the host device. Default="lyra.qut.edu.au" (QUT's HPC).
+  #   port: Port to use for SSH. Deault = 22.
+  #
+  # Returns:
+  #   A flag for success.
+  #     0 = Success
+  #     1 = Connection failed
+  #
+  # TODO:
+  #   Create additional flags to differentiate failure types.
+  #     1: Host couldn't be reached
+  #     2: Credentials not accepted
+
+    appendToLog(c("Sending credentials to", host, "over port", port))
     if (.Platform$OS.type == "windows") {
       parsed_String <-
-        submitCommandToLyra.Windows("exit",username,password,host,port)
+        submitCommandToLyra.Windows("exit", username, password, host, port)
     } else if (.Platform$OS.type == "unix") {
       parsed_String <-
-        submitCommandToLyra.Unix("exit",username,password,host,port)
+        submitCommandToLyra.Unix("exit", username, password, host, port)
     } else {
       stop("Your platform is not supported")
     }
 
     if ((length(
-      grep('debug1: Authentication succeeded',parsed_String,value = TRUE)
+      grep('debug1: Authentication succeeded', parsed_String, value = TRUE)
     ) == 0) &&
-    (length(grep('Access granted',parsed_String,value = TRUE)) == 0)) {
+    (length(grep('Access granted', parsed_String, value = TRUE)) == 0)) {
       return(1) # Connection could not be made
     } else {
       return(0) # Connection made
