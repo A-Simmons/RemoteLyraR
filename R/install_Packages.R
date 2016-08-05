@@ -188,7 +188,11 @@ downloadSourceFile <-
 getDependsAndImports <-
   function(package,type,repository = "https://cran.r-project.org/web/packages/",repository.dl =
              "https://cran.r-project.org/src/contrib/") {
+
     thepage = readLines(paste(repository,package,'/index.html',sep = ""))
+    ### Check page has desired content
+    if (length(grep(paste("<h2>",package,sep=""),thepage)) == 0)
+      stop(paste("Package ",package," not found on repository with URL: ",repository,package,'/index.html',sep=""))
 
     ### GET Imports/Depends
     index <- grep(type,thepage) + 1
