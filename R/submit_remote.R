@@ -51,39 +51,53 @@
 #' to the \code{remote.folder}.
 #' @import stats
 #' @import data.table
+submitRemote <- function(credentials, remote.folder, script.file, submission.file, data, quiet=FALSE, host="lyra.qut.edu.au", port=22, ignore.warning=FALSE) {
+  # Main function for submitting a batch of jobs to the HPC where the R scripts are stored on the HPC file server.
+  #
+  # Args:
+  #   credentials: Vector of the username and password c("<username>", "<password>").
+  #   remote.folder: PATH to the folder storing the script files on the remote device.
+  #   script.file: Name of the script file to be called on the remote device.
+  #   submission.file: Name of the PBS submission file.
+  #   data: Data frame of the data to be segmented and submitted. Includes Job details sauch as name, runtime, memory and ncpus
+  #   quiet:
+  #   host:
+  #   port:
+  #   ignore.warning:
+  #
+  # Returns:
+  #
+  # TODO:
+  #   Add logging
 
-remoteLyraR.Env <- new.env()
-
-submitRemote <-
-  function(credentials, remote.folder, script.file, submission.file, data, quiet =
-             FALSE, host = "lyra.qut.edu.au", port = 22, ignore.warning = FALSE) {
     requireNamespace("stats")
     requireNamespace("data.table")
-    username = credentials[1]; password = credentials[2];
+    username = credentials[1]
+    password = credentials[2]
 
     ### ARUGMENT CHECK ###
     # Check that server can be accessed
-    flag <- checkConnection(username,password)
+    flag <- checkConnection(username, password)
     if (flag) {
       stop("Connection refused. Check credentials.")
     }
 
     # Check that remote folder exists
-    flag <- checkRemoteFolderFileExists(directory=remote.folder,username=username,password=password,host=host,port=port)
+    flag <- checkRemoteFolderFileExists(directory=remote.folder, username=username, password=password, host=host, port=port)
     if (flag) {
       stop("Could not find remote folder.")
     }
 
     # Check that script file exists in remote folder
-    flag <- checkRemoteFolderFileExists(directory=remote.folder,file=script.file,username=username,password=password,host=host,port=port)
+    flag <- checkRemoteFolderFileExists(directory=remote.folder, file=script.file, username=username, password=password, host=host, port=port)
     if (flag) {
-      stop(paste("Could not find script file",script.file))
+      stop(paste("Could not find script file", script.file))
     }
 
     # Check that submission.file is in remote directory
-    flag <- checkRemoteFolderFileExists(directory=remote.folder,file=submission.file,username=username,password=password,host=host,port=port)
+    flag <- checkRemoteFolderFileExists(directory=remote.folder, file=submission.file, username=username, password=password, host=host, port=port)
     if (flag) {
-      stop(paste("Could not find script file",submission.file))
+      stop(paste("Could not find script file", submission.file))
     }
 
     # Check DATA structure
@@ -93,42 +107,50 @@ submitRemote <-
     submissionDF <- createSubmissionDataframe(data)
 
     ### Add submission string column
-    submissionDF <- createSubmissionString(submissionDF,script.file)
+    submissionDF <- createSubmissionString(submissionDF, script.file)
 
     ## Send submission to LYRA
-    sendSubmission(submissionDF,remote.folder,submission.file,credentials,host,port)
+    sendSubmission(submissionDF, remote.folder, submission.file, credentials, host, port)
   }
 
 ### Initiate Submission Log File
-createLogFIle <-
-  function() {
-    file.name <-
-      paste("Batch_",gsub(" ", "_", Sys.time(), fixed = TRUE),".log",sep = "")
+createLogFIle <-  function() {
+  # Sets up the log file in the remoteLyraR environment
+  #
+  # Args:
+  #
+  # Returns:
+  #
+    file.name <- paste("Batch_", gsub(" ", "_", Sys.time(), fixed = TRUE), ".log", sep = "")
     file.name <- gsub("-", "_", file.name, fixed = TRUE)
     file.name <- gsub(":", "_", file.name, fixed = TRUE)
-    assign("log.filename",file.name,envir = remoteLyraR.Env)
 
-    assign("log","",envir = remoteLyraR.Env)
+    assign("log.filename", file.name, envir = remoteLyraR.Env)
+    assign("log", "", envir = remoteLyraR.Env)
   }
 
-
 ### Send Job Batch
-sendSubmission <-
-  function(df,remote.folder,submission.file,credentials,host,port) {
-    username = credentials[1]; password = credentials[2];
+sendSubmission <- function(df, remote.folder, submission.file, credentials, host, port) {
+  # Sends the actual submission requests to HPC queue.
+  #
+  # Args:
+  #   df: Data frame containing all the job details and data.
+  #   remote.folder: PATH to folder on remote device (HPC file server) that contains the R scripts.
+  #   submission.file: name of the PBS submission file all the details are sent to.
+  #   credentials: Vector containing Username and Password for the HPC
+  #   host:
+  #   port:
+  #
+  # Returns:
+  #
+    username = credentials[1]
+    password = credentials[2]
+
     nrows <- nrow(df)
     for (ii in 1:nrows) {
-      submissionCmd <-
-        paste(
-          "cd ",remote.folder,"; qsub ",df$submissionString[ii]," -N ",df$jobname[ii]," -l walltime=",df$walltime[ii]," -l ncpus=",df$ncpus[ii]," -l mem=",df$memory[ii]," ",submission.file,sep =
-            ""
-        )
-      std.out <-
-        submitCommandToLyra(submissionCmd,username,password)
-      print(paste(
-        "Job",df$jobname[ii],"submitted successfully with Job ID",sub(".pbs\\r","\\1",std.out[82]),sep =
-          " "
-      ))
+      submissionCmd <- paste("cd ", remote.folder, "; qsub ", df$submissionString[ii], " -N ", df$jobname[ii], " -l walltime=", df$walltime[ii], " -l ncpus=", df$ncpus[ii], " -l mem=", df$memory[ii], " ", submission.file, sep = "")
+      std.out <- submitCommandToLyra(submissionCmd, username, password)
+      print(paste("Job", df$jobname[ii], "submitted successfully with Job ID", sub(".pbs\\r", "\\1", std.out[82]), sep = " "))
     }
   }
 
@@ -391,5 +413,7 @@ checkSubmissionFileExists <-
   }
 
 appendToLog <- function(stringLine) {
-  assign("log",c(get("log",envir = remoteLyraR.Env),stringLine),envir = remoteLyraR.Env)
-}
+  #assign("log",c(get("log",envir = remoteLyraR.Env),stringLine),envir = remoteLyraR.Env)
+  remoteLyraR.Env$log <- append(remoteLyraR.Env$log,stringLine)
+  print(remoteLyraR.Env$log)
+  }

@@ -1,4 +1,4 @@
-#' checkFolderExists
+#' checkRemoteFolderFileExists
 #'
 #' @export
 checkRemoteFolderFileExists <-  function(directory, file, username, password, host = "lyra.qut.edu.au", port = 22) {

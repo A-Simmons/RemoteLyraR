@@ -21,7 +21,7 @@ checkConnection <- function(username, password, host = "lyra.qut.edu.au",
   #     1: Host couldn't be reached
   #     2: Credentials not accepted
 
-    appendToLog(c("Sending credentials to", host, "over port", port))
+    appendToLog(paste("Sending credentials to", host, "over port", port))
     if (.Platform$OS.type == "windows") {
       parsed_String <-
         submitCommandToLyra.Windows("exit", username, password, host, port)
@@ -29,8 +29,10 @@ checkConnection <- function(username, password, host = "lyra.qut.edu.au",
       parsed_String <-
         submitCommandToLyra.Unix("exit", username, password, host, port)
     } else {
+      appendToLog("Platform not supported. Stopping.")
       stop("Your platform is not supported")
     }
+    appendToLog(parsed_String)
 
     if ((length(
       grep('debug1: Authentication succeeded', parsed_String, value = TRUE)
