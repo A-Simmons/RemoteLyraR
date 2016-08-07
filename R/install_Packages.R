@@ -47,7 +47,7 @@ getDependencies <-  function(credentials, packages.toinstall, local.dest, remote
     # Check Credentials
     flag <- checkConnection(username, password)
     if (flag) {
-      stop("Connection refused. Check credentials.")
+      appendToLog("Connection refused. Check credentials.","Error",TRUE)
     }
 
     # Check Local Folder Pathing
@@ -60,13 +60,13 @@ getDependencies <-  function(credentials, packages.toinstall, local.dest, remote
     # Check Remote Folder Pathing
     flag <- checkRemoteFolderFileExists(directory=remote.dest,username=username, password=password, host=host, port=port)
     if (flag) {
-      warning(paste("Could not find remote directory", remote.dest))
+      appendToLog(paste("Could not find remote directory", remote.dest), "Warning")
     }
 
     # Check Remote Folder source Pathing
     flag <- checkRemoteFolderFileExists(directory=paste(remote.dest, "source", sep=""), username=username, password=password, host=host, port=port)
     if (flag) {
-      warning(paste("Could not find remote directory for source files", paste(remote.dest, "source", sep="")))
+      appendToLog(paste("Could not find remote directory for source files", paste(remote.dest, "source", sep="")), "Warning")
     }
 
     # Make list of dependencies

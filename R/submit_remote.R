@@ -79,25 +79,25 @@ submitRemote <- function(credentials, remote.folder, script.file, submission.fil
     # Check that server can be accessed
     flag <- checkConnection(username, password)
     if (flag) {
-      stop("Connection refused. Check credentials.")
+      appendToLog("Connection refused. Check credentials.","Error",TRUE)
     }
 
     # Check that remote folder exists
     flag <- checkRemoteFolderFileExists(directory=remote.folder, username=username, password=password, host=host, port=port)
     if (flag) {
-      stop("Could not find remote folder.")
+      appendToLog("Could not find remote folder.","Error",TRUE)
     }
 
     # Check that script file exists in remote folder
     flag <- checkRemoteFolderFileExists(directory=remote.folder, file=script.file, username=username, password=password, host=host, port=port)
     if (flag) {
-      stop(paste("Could not find script file", script.file))
+      appendToLog(paste("Could not find script file", script.file),"Error",TRUE)
     }
 
     # Check that submission.file is in remote directory
     flag <- checkRemoteFolderFileExists(directory=remote.folder, file=submission.file, username=username, password=password, host=host, port=port)
     if (flag) {
-      stop(paste("Could not find script file", submission.file))
+      appendToLog(paste("Could not find script file", submission.file),"Error",TRUE)
     }
 
     # Check DATA structure
@@ -111,22 +111,6 @@ submitRemote <- function(credentials, remote.folder, script.file, submission.fil
 
     ## Send submission to LYRA
     sendSubmission(submissionDF, remote.folder, submission.file, credentials, host, port)
-  }
-
-### Initiate Submission Log File
-createLogFIle <-  function() {
-  # Sets up the log file in the remoteLyraR environment
-  #
-  # Args:
-  #
-  # Returns:
-  #
-    file.name <- paste("Batch_", gsub(" ", "_", Sys.time(), fixed = TRUE), ".log", sep = "")
-    file.name <- gsub("-", "_", file.name, fixed = TRUE)
-    file.name <- gsub(":", "_", file.name, fixed = TRUE)
-
-    assign("log.filename", file.name, envir = remoteLyraR.Env)
-    assign("log", "", envir = remoteLyraR.Env)
   }
 
 ### Send Job Batch
@@ -150,7 +134,8 @@ sendSubmission <- function(df, remote.folder, submission.file, credentials, host
     for (ii in 1:nrows) {
       submissionCmd <- paste("cd ", remote.folder, "; qsub ", df$submissionString[ii], " -N ", df$jobname[ii], " -l walltime=", df$walltime[ii], " -l ncpus=", df$ncpus[ii], " -l mem=", df$memory[ii], " ", submission.file, sep = "")
       std.out <- submitCommandToLyra(submissionCmd, username, password)
-      print(paste("Job", df$jobname[ii], "submitted successfully with Job ID", sub(".pbs\\r", "\\1", std.out[82]), sep = " "))
+
+      appendToLog(paste("Job", df$jobname[ii], "submitted successfully with Job ID", sub(".pbs\\r", "\\1", std.out[82]), sep = " "), print = TRUE)
     }
   }
 
@@ -159,8 +144,7 @@ createSubmissionString <- function(df,scriptFile) {
   df$submissionString <- NA
   for (ii in 1:nrow(df)) {
     df$submissionString[ii] <-
-      paste("-v scriptFile=\"",scriptFile,",",df$argument_string[ii],"\"",sep =
-              "")
+      paste("-v scriptFile=\"",scriptFile,",",df$argument_string[ii],"\"",sep = "")
   }
   return(df)
 }
@@ -386,8 +370,7 @@ createErrorString <- function(rows,data.vector,colName) {
 }
 
 ### Check that server can be accessed
-checkSubmissionFileExists <-
-  function(directory,file,username,password,host = "lyra.qut.edu.au",port =
+checkSubmissionFileExists <- function(directory,file,username,password,host = "lyra.qut.edu.au",port =
              22) {
     command = paste("[[ -f ./",directory,"/",file, " ]] && echo FILE_FOUND || echo FILE_NOT_FOUND",sep =
                       "")
@@ -410,10 +393,4 @@ checkSubmissionFileExists <-
     } else if (length(grep('FILE_FOUND',parsed_String,value = TRUE)) > count) {
       print("Submission file Located.")
     }
-  }
-
-appendToLog <- function(stringLine) {
-  #assign("log",c(get("log",envir = remoteLyraR.Env),stringLine),envir = remoteLyraR.Env)
-  remoteLyraR.Env$log <- append(remoteLyraR.Env$log,stringLine)
-  print(remoteLyraR.Env$log)
   }
