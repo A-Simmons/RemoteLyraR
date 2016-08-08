@@ -2,12 +2,25 @@
 % Please edit documentation in R/check_file_directory_exists.R
 \name{checkRemoteFolderFileExists}
 \alias{checkRemoteFolderFileExists}
-\title{checkFolderExists}
+\title{checkRemoteFolderFileExists}
 \usage{
 checkRemoteFolderFileExists(directory, file, username, password,
   host = "lyra.qut.edu.au", port = 22)
 }
+\arguments{
+\item{directory}{The path of the desired folder or to the desired file.}
+
+\item{file}{File to be checked exists. If empty, checks the path exists.}
+
+\item{username}{Username for your QUT HPC account}
+
+\item{password}{PAssword for your QUT HPC account}
+
+\item{host}{Address to QUT HPC}
+
+\item{port}{Port to use for SSH. Deault = 22.}
+}
 \description{
-checkFolderExists
+checkRemoteFolderFileExists
 }
 
