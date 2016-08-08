@@ -23,9 +23,6 @@ HPC file server.}
 
 \item{port}{Port to use for SSH. (Default = 22).}
 }
-\value{
-
-}
 \description{
 Automates a recursive search for package source files and their dependencies.
 Using dependency information a specific install order is  prepared to

@@ -22,7 +22,7 @@
 #' @details
 #'
 #' @return
-#'
+#' @import utils
 getDependencies <-  function(credentials, packages.toinstall, local.dest, remote.dest, host = "lyra.qut.edu.au", port = 22) {
     # Main function for installing packages on the remote device.
     #
@@ -81,7 +81,7 @@ getDependencies <-  function(credentials, packages.toinstall, local.dest, remote
     pack.df <- dfCleanUp(pack.df, local.dest)
 
     # Print Summary Messages
-    install.strings <- packageSummary(pack.df, remote.dest, quiet)
+    install.strings <- packageSummary(pack.df, remote.dest)
 
     # Copy files to remote.dest on HPC-FS
     source.files <- paste(local.dest, "*", sep="")
@@ -231,7 +231,7 @@ downloadSourceFile <-  function(pack.df, dest, repository="https://cran.r-projec
   #
   # Returns:
   #   The updated package data.frame, pack.df
-
+  require(utils)
     for (count in (1:nrow(pack.df))) {
       package <- pack.df[count, "package"]
       IsException <- exceptionList(package, dest) # Check if an exception for a certain package exists
@@ -306,6 +306,7 @@ exceptionList <- function(package,dest) {
   #   Filename of the package source file/folder
 
   # Load Exception List
+  require(utils)
   exception.df <- read.csv(   "https://raw.githubusercontent.com/A-Simmons/LyraR_Package_Install/master/LyraR_Package_Exception_List.csv", header = TRUE, stringsAsFactors = FALSE)
 
   if (package %in% exception.df$packages) {
@@ -353,7 +354,7 @@ removeInstalledPackages <- function(pack.df) {
   #
   # Returns:
   #   Updated data.frame of packages to be installed
-
+  require(utils)
   installed.packages <- read.csv(      "https://raw.githubusercontent.com/A-Simmons/LyraR_Package_Install/master/Lyra_Installed_Packages.csv", header = TRUE, stringsAsFactors = FALSE)
   packages <- pack.df$package
   pack.df <- pack.df[!(packages %in% installed.packages$Package), ]
