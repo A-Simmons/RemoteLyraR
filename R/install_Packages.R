@@ -153,7 +153,7 @@ dfCleanUp <- function(pack.df, local.dest) {
   pack.df <- pack.df[with(pack.df, order(-rank)), ]
   # Download Files and append a filename column
   pack.df$fileName <- NA
-  pack.df <- downloadSourceFile(pack.df, destfile = local.dest)
+  pack.df <- downloadSourceFile(pack.df, dest.path = local.dest)
   return(pack.df)
 }
 
