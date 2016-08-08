@@ -12,6 +12,8 @@ checkConnection(username, password, host = "lyra.qut.edu.au", port = 22)
 \item{password}{PAssword for your QUT HPC account}
 
 \item{host}{Address to QUT HPC}
+
+\item{port}{Port to use for SSH. (Default = 22).}
 }
 \value{
 A structure (dataframe or datatable, matches the structure of \code{data}) which contains the details of every

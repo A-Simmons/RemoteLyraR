@@ -12,18 +12,18 @@ getDependencies(credentials, packages.toinstall, local.dest, remote.dest,
 \item{credentials}{Vector of username and password (<Username>, <Password>).
 REQUIRED}
 
+\item{packages.toinstall}{Vector of packages to be installed. REQUIRED}
+
 \item{local.dest}{Path to store the source files locally before moving to the
 HPC file server.}
 
-\item{remote.dest}{Path on the remote device for the Personal Library to install too.}
+\item{remote.dest}{Path to personal library on the HPC file server.}
 
 \item{host}{Address for the host device. (Default="lyra.qut.edu.au", QUT's HPC).}
 
 \item{port}{Port to use for SSH. (Default = 22).}
 
-\item{packages.install}{Vector of packages to be installed. REQUIRED}
-
-\item{remote.library}{Path to personal library on the HPC file server.}
+\item{remote.dest}{Path on the remote device for the Personal Library to install too.}
 }
 \value{
 

@@ -1,6 +1,25 @@
 #' scpToLyra
 #'
 #' @export
+#' @param source PATH to source of files
+#' @param dest PATH to destination on host device
+#' @param username Username for your QUT HPC account
+#' @param password PAssword for your QUT HPC account
+#' @param host Address to QUT HPC
+#' @param port Port to use for SSH. (Default = 22).
+#'
+#' @description
+#' Automates a recursive search for package source files and their dependencies.
+#' Using dependency information a specific install order is  prepared to
+#' compensate for dependency trees. It will also attempt to identify when a
+#' particular module is needed for installation. Once prepared the files are
+#' copied to the HPC file server and installed to a personal library for future
+#' use.
+#'
+#' @details
+#'
+#' @return
+#'
 scpToLyra <- function(source, dest, username, password, host="lyra.qut.edu.au", port=22) {
   # Using the secure copy protocol (scp), copy files from a local location to the remote device. SCP requires the folder to exist on the host device.
   #
@@ -16,7 +35,7 @@ scpToLyra <- function(source, dest, username, password, host="lyra.qut.edu.au", 
   #   String vector of the output from the standard output of the console.
   #
   # TODO:
-  #   Add a check that the remote destination exists before attempting to copy. 
+  #   Add a check that the remote destination exists before attempting to copy.
 
 
   if (.Platform$OS.type == "windows") {

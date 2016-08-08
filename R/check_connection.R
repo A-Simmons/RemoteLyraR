@@ -4,6 +4,7 @@
 #' @param username Username for your QUT HPC account
 #' @param password PAssword for your QUT HPC account
 #' @param host Address to QUT HPC
+#' @param port Port to use for SSH. (Default = 22).
 #'
 #' @description
 #'

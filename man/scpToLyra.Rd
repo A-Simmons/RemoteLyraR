@@ -7,7 +7,31 @@
 scpToLyra(source, dest, username, password, host = "lyra.qut.edu.au",
   port = 22)
 }
+\arguments{
+\item{source}{PATH to source of files}
+
+\item{dest}{PATH to destination on host device}
+
+\item{username}{Username for your QUT HPC account}
+
+\item{password}{PAssword for your QUT HPC account}
+
+\item{host}{Address to QUT HPC}
+
+\item{port}{Port to use for SSH. (Default = 22).}
+}
+\value{
+
+}
 \description{
-scpToLyra
+Automates a recursive search for package source files and their dependencies.
+Using dependency information a specific install order is  prepared to
+compensate for dependency trees. It will also attempt to identify when a
+particular module is needed for installation. Once prepared the files are
+copied to the HPC file server and installed to a personal library for future
+use.
+}
+\details{
+
 }
 

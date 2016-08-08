@@ -4,8 +4,8 @@
 #' @export
 #' @param credentials Vector of username and password (<Username>, <Password>).
 #' REQUIRED
-#' @param packages.install Vector of packages to be installed. REQUIRED
-#' @param remote.library Path to personal library on the HPC file server.
+#' @param packages.toinstall Vector of packages to be installed. REQUIRED
+#' @param remote.dest Path to personal library on the HPC file server.
 #' @param local.dest Path to store the source files locally before moving to the
 #' HPC file server.
 #' @param remote.dest Path on the remote device for the Personal Library to install too.
