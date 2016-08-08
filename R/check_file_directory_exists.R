@@ -1,6 +1,12 @@
 #' checkRemoteFolderFileExists
 #'
 #' @export
+#' @param directory The path of the desired folder or to the desired file.
+#' @param file File to be checked exists. If empty, checks the path exists.
+#' @param username Username for your QUT HPC account
+#' @param password PAssword for your QUT HPC account
+#' @param host Address to QUT HPC
+#' @param port Port to use for SSH. Deault = 22. 
 checkRemoteFolderFileExists <-  function(directory, file, username, password, host = "lyra.qut.edu.au", port = 22) {
     # Checks if a folder or file can be found on a remote device.
     #

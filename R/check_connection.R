@@ -1,8 +1,11 @@
 #' checkConnection
 #'
 #' @export
-checkConnection <- function(username, password, host = "lyra.qut.edu.au",
-  port = 22) {
+#' @param username Username for your QUT HPC account
+#' @param password PAssword for your QUT HPC account
+#' @param host Address to QUT HPC
+#'
+checkConnection <- function(username, password, host = "lyra.qut.edu.au", port = 22) {
   # Determines if a connection can be made with the host device using the provided credentials.
   #
   # Args:

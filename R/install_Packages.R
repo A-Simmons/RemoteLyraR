@@ -8,6 +8,9 @@
 #' @param remote.library Path to personal library on the HPC file server.
 #' @param local.dest Path to store the source files locally before moving to the
 #' HPC file server.
+#' @param remote.dest Path on the remote device for the Personal Library to install too.
+#' @param host Address for the host device. (Default="lyra.qut.edu.au", QUT's HPC).
+#' @param port Port to use for SSH. (Default = 22).
 #'
 #' @description
 #' Automates a recursive search for package source files and their dependencies.
