@@ -17,13 +17,11 @@ REQUIRED}
 \item{local.dest}{Path to store the source files locally before moving to the
 HPC file server.}
 
-\item{remote.dest}{Path to personal library on the HPC file server.}
+\item{remote.dest}{Path on the remote device for the Personal Library to install too.}
 
 \item{host}{Address for the host device. (Default="lyra.qut.edu.au", QUT's HPC).}
 
 \item{port}{Port to use for SSH. (Default = 22).}
-
-\item{remote.dest}{Path on the remote device for the Personal Library to install too.}
 }
 \value{
 
