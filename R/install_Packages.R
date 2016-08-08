@@ -153,7 +153,7 @@ dfCleanUp <- function(pack.df, local.dest) {
   pack.df <- pack.df[with(pack.df, order(-rank)), ]
   # Download Files and append a filename column
   pack.df$fileName <- NA
-  pack.df <- downloadSourceFile(pack.df, dest = local.dest)
+  pack.df <- downloadSourceFile(pack.df, destfile = local.dest)
   return(pack.df)
 }
 
@@ -233,7 +233,7 @@ downloadSourceFile <-  function(pack.df, dest.path, repository="https://cran.r-p
   #
   # Returns:
   #   The updated package data.frame, pack.df
-  requireNamespace(utils)
+  requireNamespace("utils")
     for (count in (1:nrow(pack.df))) {
       package <- pack.df[count, "package"]
       IsException <- exceptionList(package, dest.path) # Check if an exception for a certain package exists
@@ -308,14 +308,14 @@ exceptionList <- function(package,dest) {
   #   Filename of the package source file/folder
 
   # Load Exception List
-  requireNamespace(utils)
+  requireNamespace("utils")
   exception.df <- read.csv(   "https://raw.githubusercontent.com/A-Simmons/LyraR_Package_Install/master/LyraR_Package_Exception_List.csv", header = TRUE, stringsAsFactors = FALSE)
 
   if (package %in% exception.df$packages) {
     package.details <- exception.df[exception.df$packages == package, ]
     fileName <- package.details$fileName
 
-    download.file(as.character(package.details$URL), dest = paste(dest, fileName, sep = ""))
+    download.file(as.character(package.details$URL), destfile = paste(dest, fileName, sep = ""))
     # If file needs unzipping
     if (package.details$unzip == TRUE) {
       print(paste("Unzipping", fileName))
@@ -356,7 +356,7 @@ removeInstalledPackages <- function(pack.df) {
   #
   # Returns:
   #   Updated data.frame of packages to be installed
-  require(utils)
+  requireNamespace("utils")
   installed.packages <- read.csv(      "https://raw.githubusercontent.com/A-Simmons/LyraR_Package_Install/master/Lyra_Installed_Packages.csv", header = TRUE, stringsAsFactors = FALSE)
   packages <- pack.df$package
   pack.df <- pack.df[!(packages %in% installed.packages$Package), ]
