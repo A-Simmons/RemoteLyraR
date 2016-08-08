@@ -20,8 +20,10 @@
 #' use.
 #'
 #' @details
+#' Just some fill-in for now
 #'
 #' @return
+#' Just some fill in for now
 #' @import utils
 getDependencies <-  function(credentials, packages.toinstall, local.dest, remote.dest, host = "lyra.qut.edu.au", port = 22) {
     # Main function for installing packages on the remote device.
@@ -220,12 +222,12 @@ addPackagesToInstallList <- function(package, pack.df, rank) {
   return(pack.df)
 }
 
-downloadSourceFile <-  function(pack.df, dest, repository="https://cran.r-project.org/web/packages/", repository.dl="https://cran.r-project.org/src/contrib/") {
+downloadSourceFile <-  function(pack.df, dest.path, repository="https://cran.r-project.org/web/packages/", repository.dl="https://cran.r-project.org/src/contrib/") {
   # Downloads source files from packages listed in pack.df
   #
   # Args:
   #   pack.df: Data.frame of packages which are to be installed
-  #   dest: Local PATH to store source files in
+  #   dest.path: Local PATH to store source files in
   #   repository: URL to pull the package index page
   #   repository.dl: URL to download the packages from
   #
@@ -234,7 +236,7 @@ downloadSourceFile <-  function(pack.df, dest, repository="https://cran.r-projec
   require(utils)
     for (count in (1:nrow(pack.df))) {
       package <- pack.df[count, "package"]
-      IsException <- exceptionList(package, dest) # Check if an exception for a certain package exists
+      IsException <- exceptionList(package, dest.path) # Check if an exception for a certain package exists
       if (IsException != FALSE) {
         pack.df[count, "fileName"] <- IsException
       } else {
@@ -244,7 +246,7 @@ downloadSourceFile <-  function(pack.df, dest, repository="https://cran.r-projec
         filename <- gsub(" <.*$", "", gsub("^.*\"> ", "", thepage[index])) # Get filename of file
         pack.df[count, "fileName"] <- filename
         ### DOWNLOAD FILE
-        download.file(paste(repository.dl, filename, sep = ""), dest = paste(dest, filename, sep = ""))
+        download.file(paste(repository.dl, filename, sep = ""), dest = paste(dest.path, filename, sep = ""))
       }
     }
     return(pack.df)

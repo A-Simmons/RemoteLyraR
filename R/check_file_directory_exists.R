@@ -6,7 +6,16 @@
 #' @param username Username for your QUT HPC account
 #' @param password PAssword for your QUT HPC account
 #' @param host Address to QUT HPC
-#' @param port Port to use for SSH. Deault = 22. 
+#' @param port Port to use for SSH. Deault = 22.
+#'
+#' @description
+#' Just some fill-in for now
+#'
+#' @details
+#' Just some fill-in for now
+#'
+#' @return
+#' Just some fill in for now
 checkRemoteFolderFileExists <-  function(directory, file, username, password, host = "lyra.qut.edu.au", port = 22) {
     # Checks if a folder or file can be found on a remote device.
     #

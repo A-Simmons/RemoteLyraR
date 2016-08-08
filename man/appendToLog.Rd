@@ -7,9 +7,15 @@
 appendToLog(stringLine)
 }
 \arguments{
-\item{stringLine}{String or vector of strings to be added to the log}
+\item{stringLine}{String or vector of strings to be added to the log#'}
+}
+\value{
+Just some fill in for now
 }
 \description{
-logging
+Just some fill-in for now
+}
+\details{
+Just some fill-in for now
 }
 

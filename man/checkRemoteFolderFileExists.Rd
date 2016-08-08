@@ -20,7 +20,13 @@ checkRemoteFolderFileExists(directory, file, username, password,
 
 \item{port}{Port to use for SSH. Deault = 22.}
 }
+\value{
+Just some fill in for now
+}
 \description{
-checkRemoteFolderFileExists
+Just some fill-in for now
+}
+\details{
+Just some fill-in for now
 }
 

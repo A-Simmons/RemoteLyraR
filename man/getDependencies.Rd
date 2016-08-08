@@ -23,6 +23,9 @@ HPC file server.}
 
 \item{port}{Port to use for SSH. (Default = 22).}
 }
+\value{
+Just some fill in for now
+}
 \description{
 Automates a recursive search for package source files and their dependencies.
 Using dependency information a specific install order is  prepared to
@@ -32,6 +35,6 @@ copied to the HPC file server and installed to a personal library for future
 use.
 }
 \details{
-
+Just some fill-in for now
 }
 
