@@ -233,7 +233,7 @@ downloadSourceFile <-  function(pack.df, dest.path, repository="https://cran.r-p
   #
   # Returns:
   #   The updated package data.frame, pack.df
-  require(utils)
+  requireNamespace(utils)
     for (count in (1:nrow(pack.df))) {
       package <- pack.df[count, "package"]
       IsException <- exceptionList(package, dest.path) # Check if an exception for a certain package exists
@@ -246,7 +246,7 @@ downloadSourceFile <-  function(pack.df, dest.path, repository="https://cran.r-p
         filename <- gsub(" <.*$", "", gsub("^.*\"> ", "", thepage[index])) # Get filename of file
         pack.df[count, "fileName"] <- filename
         ### DOWNLOAD FILE
-        download.file(paste(repository.dl, filename, sep = ""), dest = paste(dest.path, filename, sep = ""))
+        download.file(paste(repository.dl, filename, sep = ""), destfile = paste(dest.path, filename, sep = ""))
       }
     }
     return(pack.df)
@@ -308,7 +308,7 @@ exceptionList <- function(package,dest) {
   #   Filename of the package source file/folder
 
   # Load Exception List
-  require(utils)
+  requireNamespace(utils)
   exception.df <- read.csv(   "https://raw.githubusercontent.com/A-Simmons/LyraR_Package_Install/master/LyraR_Package_Exception_List.csv", header = TRUE, stringsAsFactors = FALSE)
 
   if (package %in% exception.df$packages) {
