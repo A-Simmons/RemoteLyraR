@@ -155,18 +155,36 @@ sendSubmission <- function(df, remote.folder, submission.file, credentials, host
   }
 
 ### Create argument string
-createSubmissionString <- function(df,scriptFile) {
+createSubmissionString <- function(df, scriptFile) {
+  # Creates the string command for submission.
+  #
+  # Args:
+  #   df: Dataframe for each job with job details and data.
+  #   scriptFile: name of the script file.
+  #
+  # Returns:
+  #   Returns an appended dataframe with a new column with the command line for each job.
+  #
+  # TODO:
+  #   Look into updating this using dplyr (This entire function could be one line of code)
+
   df$submissionString <- NA
   for (ii in 1:nrow(df)) {
-    df$submissionString[ii] <-
-      paste("-v scriptFile=\"",scriptFile,",",df$argument_string[ii],"\"",sep =
-              "")
+    df$submissionString[ii] <- paste("-v scriptFile=\"", scriptFile, ",", df$argument_string[ii], "\"", sep = "")
   }
   return(df)
 }
 
 ### Create Submission dataframe
 createSubmissionDataframe <- function(data) {
+  # Checks consistency of data and creates a job-centred dataframe for submission.
+  #
+  # Args:
+  #   data: Dataframe of each set of data. Each row contains a potentially unique set of data as well as run statistics (such as walltime, memory, etc).
+  #
+  # Returns:
+  #   A dataframe with the necessary entries for each job submission.
+
   repeatColExists <- any(colnames(data) %in% "REPEAT")
   ncpusColExists <- any(colnames(data) %in% "NCPUS")
   dnrColExists <- any(colnames(data) %in% "DONOTRUN")
@@ -180,21 +198,13 @@ createSubmissionDataframe <- function(data) {
     nrows <- nrow(data)
 
   # Create argument dataframe
-  reserved.colnames <-
-    c("JOBNAME","MEMORY","WALLTIME","NCPUS","REPEAT","DONOTRUN","seed")
-  argument.names <-
-    colnames(data)[!(colnames(data) %in% reserved.colnames)]
-  parameter.names <-
-    c(
-      "jobname","memory","walltime","ncpus",argument.names,"seed","argument_string"
-    )
-  argumentDF <-
-    data.frame(matrix(
-      NA,ncol = length(parameter.names),nrow = nrows,dimnames = list(NULL, parameter.names)
-    ))
+  reserved.colnames <- c("JOBNAME", "MEMORY", "WALLTIME", "NCPUS", "REPEAT", "DONOTRUN", "seed")
+  argument.names <- colnames(data)[!(colnames(data) %in% reserved.colnames)]
+  parameter.names <- c("jobname", "memory", "walltime", "ncpus", argument.names, "seed", "argument_string")
+  argumentDF <- data.frame(matrix(NA, ncol = length(parameter.names), nrow = nrows, dimnames = list(NULL, parameter.names)))
 
   # Add RNG Seed column
-  argumentDF$seed <- ceiling(runif(nrows, 0, 10 ^ 8))
+  argumentDF$seed <- ceiling(runif(nrows, 0, 10^8))
 
   # Iterate for each submission
   for (ii in 1:nrows) {
@@ -212,25 +222,21 @@ createSubmissionDataframe <- function(data) {
     if (repeatColExists)
       repCount <- ii - sum(data$REPEAT[0:(jobRow - 1)])
     if (repeatColExists)
-      jobname <-
-        paste(data$JOBNAME[jobRow],"_rep",repCount,sep = "")
+      jobname <- paste(data$JOBNAME[jobRow], "_rep", repCount, sep = "")
     else
       jobname <- data$JOBNAME[jobRow]
     argumentDF$jobname[ii] <- as.vector(jobname) # Jobname
     # Translate values from data to argumentDF
     argumentDF$memory[ii] <- as.vector(data$MEMORY[jobRow]) # Memory
-    argumentDF$walltime[ii] <-
-      as.vector(data$WALLTIME[jobRow]) # Walltime
+    argumentDF$walltime[ii] <- as.vector(data$WALLTIME[jobRow]) # Walltime
     if (ncpusColExists)
-      argumentDF$ncpus[ii] <-
-      as.vector(data$NCPUS[jobRow])
+      argumentDF$ncpus[ii] <- as.vector(data$NCPUS[jobRow])
     else
       argumentDF$ncpus[ii] <- 1 # NCPUS
-    argumentDF[ii,argument.names] <-
-      as.vector(t(data[jobRow,argument.names])[,1]) # User specified arguments
+    argumentDF[ii, argument.names] <- as.vector(t(data[jobRow, argument.names])[, 1]) # User specified arguments
 
     # Construct argument string
-    arguments <- argumentDF[ii,c("jobname","seed",argument.names)]
+    arguments <- argumentDF[ii, c("jobname", "seed", argument.names)]
     argumentDF$argument_string[ii] <- argumentString(arguments)
   }
   return(argumentDF)
@@ -238,18 +244,39 @@ createSubmissionDataframe <- function(data) {
 
 ### Create argument string
 argumentString <- function(arguments) {
+  # Construct the argument string for submission
+  #
+  # Args:
+  #   arguments: Named vector of arguments to be passed to the R script.
+  #
+  # Returns:
+  #   String of arguments in the form "argString=--args <arg Name>=<arg Value> ..."
+  #
+  # TODO:
+  #   This could be summarised using paste(col.names, "=", col.values, sep="", collapse=" ")
+
   argumentString <- "argString=--args"
   col.names <- colnames(arguments)
-  col.values <- arguments[1,]
+  col.values <- arguments[1, ]
   for (ii in 1:ncol(arguments)) {
-    argumentString <-
-      paste(argumentString," ",col.names[ii],"=",col.values[ii],sep = "")
+    argumentString <- paste(argumentString, " ", col.names[ii], "=", col.values[ii], sep = "")
   }
   return(argumentString)
 }
 
 ### Check data structure
 checkData <- function(data) {
+  # Checks the consistency of the data to ensure it matches what the HPC queue expects.
+  #
+  # Args:
+  #   data: Dataframe of each set of data. Each row contains a potentially unique set of data as well as run statistics (such as walltime, memory, etc
+  #
+  # Returns:
+  #   Returns errors and warnings.
+  #
+  # TODO:
+  #   Change the error and warning handling to use the logging methods.
+
   colnames <- colnames(data)
   jobnameColExists <- any(colnames %in% "JOBNAME")
   memoryColExists <- any(colnames %in% "MEMORY")
@@ -272,7 +299,7 @@ checkData <- function(data) {
   if (!((jobnameColExists) &&
         (memoryColExists) && (walltimeColExists))) {
     # Determine which columns are missing
-    if (sum(c(!jobnameColExists,!memoryColExists,!walltimeColExists)) >
+    if (sum(c(!jobnameColExists, !memoryColExists, !walltimeColExists)) >
         1)
       plural <- "s "
     else
@@ -290,130 +317,80 @@ checkData <- function(data) {
     else
       walltimeError <- ""
     # Send error
-    missingColsErr <-
-      paste(
-        "\nColumn",plural,jobnameError,memoryError,walltimeError,"not found in ",structure,sep =
-          ""
-      )
-    err_str <- paste(err_str,missingColsErr,sep = "\n\n")
+    missingColsErr <-paste("\nColumn", plural, jobnameError, memoryError, walltimeError, "not found in ", structure, sep = "")
+    err_str <- paste(err_str, missingColsErr, sep = "\n\n")
   }
-
 
   ### Check that each jobname is unique
   dupJobNameWarning <- character(0)
   dupJobnames <- as.vector(data$JOBNAME[duplicated(data$JOBNAME)])
   print(dupJobnames)
   for (name in dupJobnames) {
-    dupJobNameWarning <-
-      paste(
-        dupJobNameWarning,"\n Jobname ",name," found in rows ",paste(which(data$JOBNAME %in% name),collapse =
-                                                                       " "),sep = ""
-      )
+    dupJobNameWarning <- paste(dupJobNameWarning, "\n Jobname ", name, " found in rows ", paste(which(data$JOBNAME %in% name), collapse = " "), sep = "")
   }
   if (length(dupJobNameWarning) != 0)
-    dupJobNameWarning <-
-    paste("Duplicated JOBNAMEs found",dupJobNameWarning)
-
+    dupJobNameWarning <- paste("Duplicated JOBNAMEs found", dupJobNameWarning)
 
   ### Check formatting of memory is correct
-  invalidRowsMemory <-
-    grep("^[0-9]+[m_g]b$",tolower(data$MEMORY),invert = TRUE)
-  memoryError <-
-    createErrorString(invalidRowsMemory,data$MEMORY,"MEMORY")
+  invalidRowsMemory <- grep("^[0-9]+[m_g]b$", tolower(data$MEMORY), invert = TRUE)
+  memoryError <- createErrorString(invalidRowsMemory, data$MEMORY, "MEMORY")
   if (length(memoryError) != 0)
-    err_str <- paste(err_str,memoryError,sep = "\n\n")
-
+    err_str <- paste(err_str, memoryError, sep = "\n\n")
 
   ### Check formatting of walltime is correct
-  invalidRowsWalltime <-
-    grep(
-      "^[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}$|^([0-9]*\\.[0-9]+|[0-9]+)$",tolower(data$WALLTIME),invert =
-        TRUE
-    )
-  walltimeError <-
-    createErrorString(invalidRowsWalltime,data$WALLTIME,"WALLTIME")
+  invalidRowsWalltime <- grep("^[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}$|^([0-9]*\\.[0-9]+|[0-9]+)$", tolower(data$WALLTIME), invert = TRUE)
+  walltimeError <- createErrorString(invalidRowsWalltime, data$WALLTIME, "WALLTIME")
   if (length(walltimeError) != 0)
-    err_str <- paste(err_str,walltimeError,sep = "\n\n")
-
+    err_str <- paste(err_str, walltimeError, sep = "\n\n")
 
   ### Check formatting of NCPUS is correct
   if (ncpusColExists) {
-    invalidRowsNCPUS <-
-      grep("^[0-9]*$",tolower(data$NCPUS),invert = TRUE) # Invalid in floating point form
-    ncpusError <-
-      createErrorString(invalidRowsNCPUS,data$NCPUS,"NCPUS")
+    invalidRowsNCPUS <- grep("^[0-9]*$", tolower(data$NCPUS), invert = TRUE) # Invalid in floating point form
+    ncpusError <- createErrorString(invalidRowsNCPUS, data$NCPUS, "NCPUS")
     if (length(ncpusError) != 0)
-      err_str <- paste(err_str,ncpusError,sep = "\n\n")
+      err_str <- paste(err_str, ncpusError, sep = "\n\n")
   }
-
 
   ### Check formatting of DONOTRUN is correct
   if (dnrColExists) {
-    invalidRowsDNR <-
-      grep("^[TRUE_FALSE]+$",tolower(data$DONOTRUNJOB),invert = TRUE) # Invalid in floating point form
-    dnrError <-
-      createErrorString(invalidRowsDNR,data$DONOTRUNJOB,"DONOTRUN")
+    invalidRowsDNR <- grep("^[TRUE_FALSE]+$", tolower(data$DONOTRUNJOB), invert = TRUE) # Invalid in floating point form
+    dnrError <- createErrorString(invalidRowsDNR, data$DONOTRUNJOB, "DONOTRUN")
     if (length(dnrError) != 0)
-      err_str <- paste(err_str,dnrError,sep = "\n\n")
+      err_str <- paste(err_str, dnrError, sep = "\n\n")
   }
-
 
   ### Check formatting of REPEAT is correct
   if (dnrColExists) {
-    invalidRowsREPEAT <-
-      grep("^[TRUE_FALSE]+$",tolower(data$REPEAT),invert = TRUE) # Invalid in floating point form
-    repeatError <-
-      createErrorString(invalidRowsREPEAT,data$REPEAT,"REPEAT")
+    invalidRowsREPEAT <- grep("^[TRUE_FALSE]+$", tolower(data$REPEAT), invert = TRUE) # Invalid in floating point form
+    repeatError <- createErrorString(invalidRowsREPEAT, data$REPEAT, "REPEAT")
     if (length(repeatError) != 0)
-      err_str <- paste(err_str,repeatError,sep = "\n\n")
+      err_str <- paste(err_str, repeatError, sep = "\n\n")
   }
 
-
   ### Consolidate Errors and Warnings
-  warn_str <- paste(dupJobNameWarning,sep = "\n")
-  err_warn <- c(warn_str,err_str)
+  warn_str <- paste(dupJobNameWarning, sep = "\n")
+  err_warn <- c(warn_str, err_str)
   return(err_warn)
 }
 
 ### Create error string from invalid rows
 createErrorString <- function(rows,data.vector,colName) {
+  #
+  #
+  # Args:
+  #   rows:
+  #   data.vector:
+  #   colName:
+  #
+  # Returns:
+  #
+
   string <- character(0)
   for (row in rows) {
     string <- paste(string,"\nRow ",row,": ",data.vector[row],sep = "")
   }
   if (length(string) != 0)
     string <- paste("Invalid",colName,"fields found",string)
+
+  return(string)
 }
-
-### Check that server can be accessed
-checkSubmissionFileExists <-
-  function(directory,file,username,password,host = "lyra.qut.edu.au",port =
-             22) {
-    command = paste("[[ -f ./",directory,"/",file, " ]] && echo FILE_FOUND || echo FILE_NOT_FOUND",sep =
-                      "")
-
-    if (.Platform$OS.type == "windows") {
-      parsed_String <-
-        submitCommandToLyra.Windows(command,username,password,host,port)
-      count <- 0
-    } else if (.Platform$OS.type == "unix") {
-      parsed_String <-
-        submitCommandToLyra.Unix(command,username,password,host,port)
-      count <- 1
-    } else {
-      stop("Your platform is not supported")
-    }
-
-
-    if (length(grep('FILE_NOT_FOUND',parsed_String,value = TRUE)) > count) {
-      stop(paste("The submission file: /",file," could not be found.",sep = ""))
-    } else if (length(grep('FILE_FOUND',parsed_String,value = TRUE)) > count) {
-      print("Submission file Located.")
-    }
-  }
-
-appendToLog <- function(stringLine) {
-  #assign("log",c(get("log",envir = remoteLyraR.Env),stringLine),envir = remoteLyraR.Env)
-  remoteLyraR.Env$log <- append(remoteLyraR.Env$log,stringLine)
-  print(remoteLyraR.Env$log)
-  }
